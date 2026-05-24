@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CRUCIBLE SIGINT v5</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Exo+2:wght@200;300;400;600&family=Inter:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#060810;--bg2:#0b0f1a;--panel:#0d1220;
+  --border:#1e2d4a;--border-hi:#2a4070;
+  --cyan:#00d4ff;--cyan-dim:#0088aa;
+  --amber:#ffaa00;--amber-dim:#7a5000;
+  --red:#ff3355;--red-dim:#661122;
+  --green:#00ff88;--green-dim:#006633;
+  --purple:#aa55ff;--purple-dim:#441188;
+  --blue:#4488ff;--blue-dim:#1a3388;
+  --text:#c8d8f0;--text-dim:#4a6080;--text-muted:#2a3a55;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Rajdhani',sans-serif;
+  --body:'Exo 2',sans-serif;
+}
+
+/* ── LIGHT / PAPER THEME ── */
+body.theme-light{
+  --bg:#f5f0e8;
+  --bg2:#ede8df;
+  --panel:#faf7f2;
+  --border:#c8bfaa;
+  --border-hi:#a09080;
+  --cyan:#1a5fa8;
+  --cyan-dim:#2874b8;
+  --amber:#b85c00;
+  --amber-dim:#e07a20;
+  --red:#c0152a;
+  --red-dim:#e03048;
+  --green:#1a7a38;
+  --green-dim:#28a050;
+  --purple:#6b3aaa;
+  --purple-dim:#8855cc;
+  --blue:#1a4fa0;
+  --blue-dim:#2860c0;
+  --text:#1a1208;
+  --text-dim:#4a3c28;
+  --text-muted:#8a7a68;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Inter',sans-serif;
+  --body:'Inter',sans-serif;
+}
+
+/* Kill scanlines and grid in light mode — they look terrible on white */
+body.theme-light::before{display:none;}
+body.theme-light::after{display:none;}
+
+/* Light mode — readable shadows and borders */
+body.theme-light .logo{
+  color:var(--cyan);
+  text-shadow:none;
+  font-family:'Inter',sans-serif;
+  letter-spacing:4px;
+}
+body.theme-light .hdr{border-bottom-color:#c8bfaa;}
+body.theme-light .tabs{border-bottom-color:#c8bfaa;}
+body.theme-light .tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+body.theme-light input.seed,body.theme-light textarea.seed{
+  background:#fff;border-color:#c8bfaa;color:#1a1208;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.08);
+}
+body.theme-light input.seed:focus,body.theme-light textarea.seed:focus{
+  border-color:var(--cyan);box-shadow:0 0 0 2px rgba(26,95,168,.15),inset 0 1px 3px rgba(0,0,0,.06);
+}
+body.theme-light .btn{border-color:var(--cyan);color:var(--cyan);}
+body.theme-light .btn:hover{color:#fff;}
+body.theme-light .btn::before{background:var(--cyan);}
+body.theme-light .btn-help{border-color:#a09080;color:#4a3c28;}
+body.theme-light .btn-help:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* Log */
+body.theme-light .log-panel{background:#fff;border-color:#c8bfaa;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.theme-light .log-body{background:#fff;}
+body.theme-light .lts{color:#a09080;}
+body.theme-light .lm{color:#4a3c28;}
+body.theme-light .ok .lst{color:#1a7a38;}
+body.theme-light .warn .lst{color:#b85c00;}
+body.theme-light .err .lst{color:#c0152a;}
+body.theme-light .info .lst{color:#1a5fa8;}
+body.theme-light .live .lst{color:#6b3aaa;}
+body.theme-light .hi .lm{color:#1a1208;}
+
+/* Panels */
+body.theme-light .rpanel{background:#fff;border-color:#c8bfaa;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.theme-light .rpanel.has{border-color:#1a5fa8;box-shadow:0 1px 6px rgba(26,95,168,.12);}
+body.theme-light .rpanel.crit{border-color:#c0152a!important;box-shadow:0 1px 6px rgba(192,21,42,.12)!important;}
+body.theme-light .phdr{background:rgba(26,95,168,.04);border-bottom-color:#c8bfaa;}
+body.theme-light .ptitle{color:#1a1208;}
+body.theme-light .pdot{background:#c8bfaa;}
+body.theme-light .rpanel.has .pdot{background:var(--cyan);box-shadow:none;}
+body.theme-light .pcount{background:rgba(26,95,168,.08);border-color:rgba(26,95,168,.25);color:var(--cyan);}
+body.theme-light .pbody{background:#fff;}
+body.theme-light .empty{color:#a09080;}
+body.theme-light .ipanel{background:#fff;border-color:#c8bfaa;border-top-color:var(--cyan);box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.theme-light .ipanel::after{color:#a09080;}
+body.theme-light .ilabel{color:var(--cyan);}
+
+/* Domain/infra rows */
+body.theme-light .di{border-bottom-color:rgba(200,191,170,.5);}
+body.theme-light .dn{color:#1a5fa8;}
+body.theme-light .irow2{border-bottom-color:rgba(200,191,170,.5);}
+body.theme-light .ik{color:#6a5c48;}
+body.theme-light .iv{color:#1a1208;}
+body.theme-light .fw-warn{color:#b85c00;border-color:#e07a20;background:rgba(184,92,0,.06);}
+body.theme-light .fw-crit{color:#c0152a;border-color:#e03048;background:rgba(192,21,42,.06);}
+body.theme-light .fw-ok{color:#1a7a38;border-color:#28a050;background:rgba(26,122,56,.06);}
+body.theme-light .fw-info{color:#6b3aaa;border-color:#8855cc;background:rgba(107,58,170,.06);}
+body.theme-light .fw-live{color:#1a5fa8;border-color:#2874b8;background:rgba(26,95,168,.06);}
+
+/* Badges */
+body.theme-light .badge.bc{color:#6b3aaa;border-color:#8855cc;background:rgba(107,58,170,.08);}
+body.theme-light .badge.bs{color:#b85c00;border-color:#e07a20;background:rgba(184,92,0,.08);}
+body.theme-light .badge.bseed{color:#1a7a38;border-color:#28a050;background:rgba(26,122,56,.08);}
+body.theme-light .badge.bneibu{color:#c0152a;border-color:#e03048;background:rgba(192,21,42,.08);}
+body.theme-light .badge.bdemo{color:#8a7a68;border-color:#c8bfaa;}
+
+/* Chips */
+body.theme-light .chip{border-color:#c8bfaa;color:#8a7a68;background:#fff;}
+body.theme-light .chip.live{border-color:#28a050;color:#1a7a38;background:rgba(26,122,56,.05);}
+body.theme-light .chip.fail{border-color:#e03048;color:#c0152a;background:rgba(192,21,42,.05);}
+body.theme-light .chip.pend{border-color:#e07a20;color:#b85c00;background:rgba(184,92,0,.05);}
+
+/* Pipeline stages */
+body.theme-light .stage{background:#fff;border-color:#c8bfaa;color:#8a7a68;}
+body.theme-light .stage.active{border-color:var(--cyan);color:var(--cyan);background:rgba(26,95,168,.04);}
+body.theme-light .stage.done{border-color:#28a050;color:#1a7a38;background:rgba(26,122,56,.04);}
+
+/* Score ring */
+body.theme-light .score-wrap{background:#fff;}
+body.theme-light .score-lbl{color:#6a5c48;}
+body.theme-light .sf-lbl{color:#6a5c48;}
+body.theme-light .sf-bw{background:#ede8df;border-color:#c8bfaa;}
+body.theme-light .confidence-row{color:#6a5c48;}
+
+/* Signal grid */
+body.theme-light .sitem{background:#ede8df;border-color:#c8bfaa;}
+body.theme-light .slbl{color:#6a5c48;}
+body.theme-light .ssub{color:#6a5c48;}
+
+/* Registrar chart */
+body.theme-light .rrow .rname{color:#4a3c28;}
+body.theme-light .rbg{background:#ede8df;border-color:#c8bfaa;}
+body.theme-light .rct{color:#6a5c48;}
+
+/* Timeline */
+body.theme-light .tl-bar{background:rgba(26,95,168,.25);border-color:rgba(26,95,168,.4);}
+body.theme-light .tl-bar:hover{background:rgba(26,95,168,.45);}
+body.theme-light .tl-bar-tip{background:#fff;border-color:#c8bfaa;color:#1a5fa8;}
+body.theme-light .tl-label{color:#8a7a68;}
+body.theme-light .tl-summary{color:#4a3c28;}
+body.theme-light .tl-summary span{color:#b85c00;}
+
+/* Reval */
+body.theme-light .reval-panel{background:#fff;border-color:#c8bfaa;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.theme-light .reval-title{color:#1a1208;}
+body.theme-light .ritem{background:#ede8df;border-color:#c8bfaa;}
+body.theme-light .rdom{color:#1a5fa8;}
+
+/* Wallet alert */
+body.theme-light .walert{background:rgba(192,21,42,.04);border-color:#e03048;}
+body.theme-light .wa-icon{color:#c0152a;}
+body.theme-light .wa-title{color:#c0152a;}
+body.theme-light .wa-detail{color:#4a3c28;}
+body.theme-light .wa-detail code{color:#c0152a;background:rgba(192,21,42,.08);}
+body.theme-light .revoke{color:#c0152a;border-color:#e03048;}
+body.theme-light .revoke:hover{background:#c0152a;color:#fff;}
+
+/* urlscan / JS scan */
+body.theme-light .us-key{color:#6a5c48;}
+body.theme-light .us-val{color:#1a1208;}
+body.theme-light .us-row{border-bottom-color:rgba(200,191,170,.5);}
+body.theme-light .js-text{color:#4a3c28;}
+body.theme-light .js-finding{border-bottom-color:rgba(200,191,170,.5);}
+
+/* cnote */
+body.theme-light .cnote{background:rgba(107,58,170,.04);border-color:#8855cc;}
+
+/* Export */
+body.theme-light .ebar{border-top-color:#c8bfaa;}
+body.theme-light .ebtn{border-color:#a09080;color:#4a3c28;background:#fff;}
+body.theme-light .ebtn:hover{border-color:var(--cyan);color:var(--cyan);}
+body.theme-light .ebtn.primary{border-color:var(--cyan);color:var(--cyan);}
+body.theme-light .ebtn.primary:hover{background:var(--cyan);color:#fff;}
+body.theme-light .defang-wrap{color:#6a5c48;}
+body.theme-light .dcb{background:#fff;border-color:#a09080;}
+body.theme-light .dcb:checked{background:rgba(184,92,0,.1);border-color:#b85c00;}
+body.theme-light .dbadge{color:#b85c00;border-color:#e07a20;background:rgba(184,92,0,.06);}
+
+/* Modal */
+body.theme-light .modal{background:#faf7f2;border-color:#c8bfaa;border-top-color:var(--cyan);}
+body.theme-light .modal-hdr{border-bottom-color:#c8bfaa;}
+body.theme-light .modal-title{color:var(--cyan);}
+body.theme-light .modal-close{color:#6a5c48;}
+body.theme-light .help-section h3{color:var(--cyan);border-bottom-color:#c8bfaa;}
+body.theme-light .help-section h4{color:#b85c00;}
+body.theme-light .help-section p,body.theme-light .help-section li{color:#4a3c28;}
+body.theme-light .help-section li strong,body.theme-light .help-section p strong{color:#1a1208;}
+body.theme-light .help-kbd{background:#ede8df;border-color:#c8bfaa;color:#1a5fa8;}
+body.theme-light .band-lo{background:rgba(26,122,56,.08);border-color:#28a050;color:#1a7a38;}
+body.theme-light .band-med{background:rgba(184,92,0,.08);border-color:#e07a20;color:#b85c00;}
+body.theme-light .band-hi{background:rgba(192,21,42,.08);border-color:#e03048;color:#c0152a;}
+body.theme-light .seed-card{background:#ede8df;border-color:#c8bfaa;}
+body.theme-light .seed-card:hover{border-color:var(--cyan);background:rgba(26,95,168,.04);}
+body.theme-light .sc-domain{color:#1a5fa8;}
+body.theme-light .sc-op{color:#b85c00;}
+body.theme-light .sc-desc{color:#4a3c28;}
+body.theme-light .sc-badge.crit{color:#c0152a;border-color:#e03048;}
+body.theme-light .sc-badge.warn{color:#b85c00;border-color:#e07a20;}
+body.theme-light .sc-badge.info{color:#6b3aaa;border-color:#8855cc;}
+body.theme-light .ph-dot.hit{background:#c0152a;box-shadow:none;}
+body.theme-light .ph-dot.miss{background:#c8bfaa;}
+body.theme-light .cert-date{color:#6a5c48;}
+body.theme-light .cert-dn{color:#1a5fa8;}
+body.theme-light .cert-ca{color:#6b3aaa;}
+body.theme-light .btable th{color:#8a7a68;background:#faf7f2;border-bottom-color:#c8bfaa;}
+body.theme-light .btable td{border-bottom-color:rgba(200,191,170,.4);}
+
+/* Investigator mode banner */
+body.theme-light #mode-investigator>div:first-child{background:rgba(184,92,0,.05);border-color:#e07a20;}
+
+/* Theme toggle button */
+.btn-theme{
+  background:transparent;border:1px solid var(--border-hi);
+  color:var(--text-dim);font-family:var(--display);font-size:11px;
+  font-weight:600;letter-spacing:2px;padding:7px 12px;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.btn-theme:hover{border-color:var(--cyan);color:var(--cyan);}
+.theme-icon{font-size:13px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:1000;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.015) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:0 24px 80px;}
+
+/* HEADER */
+.hdr{display:flex;align-items:flex-end;justify-content:space-between;padding:24px 0 18px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.logo{font-family:var(--display);font-size:36px;font-weight:700;letter-spacing:8px;color:var(--cyan);text-shadow:0 0 30px rgba(0,212,255,0.4);}
+.logo-sub{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--text-dim);margin-top:4px;}
+.hdr-right{display:flex;align-items:flex-end;gap:20px;}
+.hdr-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;line-height:1.9;}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;vertical-align:middle;margin-right:4px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.btn-help{background:transparent;border:1px solid var(--border-hi);color:var(--text-dim);font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:3px;padding:7px 14px;cursor:pointer;transition:all .2s;}
+.btn-help:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* HELP MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--cyan);width:100%;max-width:900px;position:relative;}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--border);}
+.modal-title{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:4px;color:var(--cyan);}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:4px 8px;}
+.modal-close:hover{color:var(--red);}
+.modal-body{padding:28px;max-height:75vh;overflow-y:auto;}
+.modal-body::-webkit-scrollbar{width:4px;}
+.modal-body::-webkit-scrollbar-thumb{background:var(--border-hi);}
+.help-section{margin-bottom:28px;}
+.help-section h3{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.help-section h4{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:2px;color:var(--amber);margin:12px 0 6px;}
+.help-section p,.help-section li{font-family:var(--body);font-size:12px;color:var(--text-dim);line-height:1.7;font-weight:300;}
+.help-section ul{padding-left:16px;}
+.help-section li{margin-bottom:4px;}
+.help-section li strong,.help-section p strong{color:var(--text);font-weight:600;}
+.help-kbd{font-family:var(--mono);font-size:10px;background:var(--bg2);border:1px solid var(--border);padding:1px 5px;color:var(--cyan);}
+.score-band{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.band{padding:4px 10px;font-family:var(--mono);font-size:10px;letter-spacing:1px;}
+.band-lo{background:rgba(0,255,136,.08);border:1px solid var(--green-dim);color:var(--green);}
+.band-med{background:rgba(255,170,0,.08);border:1px solid var(--amber-dim);color:var(--amber);}
+.band-hi{background:rgba(255,51,85,.08);border:1px solid var(--red-dim);color:var(--red);}
+/* SEED CARDS */
+.seed-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;}
+.seed-card{background:var(--bg2);border:1px solid var(--border);padding:12px 14px;cursor:pointer;transition:all .2s;}
+.seed-card:hover{border-color:var(--cyan);background:rgba(0,212,255,.04);}
+.sc-domain{font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:4px;}
+.sc-op{font-family:var(--display);font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:4px;}
+.sc-desc{font-family:var(--mono);font-size:9px;color:var(--text-dim);line-height:1.5;}
+.sc-score{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.sc-badge{font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid;}
+.sc-badge.crit{color:var(--red);border-color:var(--red-dim);}
+.sc-badge.warn{color:var(--amber);border-color:var(--amber-dim);}
+.sc-badge.info{color:var(--purple);border-color:var(--purple-dim);}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px;}
+.tab{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:3px;padding:10px 18px;cursor:pointer;color:var(--text-dim);border:none;border-bottom:2px solid transparent;background:none;transition:all .2s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+.mode{display:none;}
+.mode.active{display:block;}
+
+/* CHIPS */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.chip{font-family:var(--mono);font-size:9px;padding:3px 8px;border:1px solid var(--border);color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:all .3s;}
+.chip-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.chip.live{border-color:var(--green-dim);color:var(--green);}
+.chip.fail{border-color:var(--red-dim);color:var(--red);}
+.chip.pend{border-color:var(--amber-dim);color:var(--amber);}
+
+/* INPUT */
+.ipanel{background:var(--panel);border:1px solid var(--border);border-top:2px solid var(--cyan);padding:20px 26px;margin-bottom:14px;position:relative;}
+.ipanel::after{content:attr(data-lbl);position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text-muted);}
+.ilabel{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--cyan);margin-bottom:8px;}
+.irow{display:flex;gap:10px;}
+.iwrap{flex:1;position:relative;}
+.ipfx{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:14px;color:var(--cyan-dim);pointer-events:none;}
+input.seed,textarea.seed{width:100%;background:var(--bg2);border:1px solid var(--border);border-left:2px solid var(--cyan-dim);color:var(--cyan);font-family:var(--mono);font-size:14px;padding:11px 12px 11px 34px;outline:none;transition:border-color .2s;letter-spacing:1px;}
+textarea.seed{resize:vertical;min-height:90px;padding:10px 12px;font-size:12px;}
+input.seed::placeholder,textarea.seed::placeholder{color:var(--text-muted);}
+input.seed:focus,textarea.seed:focus{border-color:var(--cyan);box-shadow:inset 0 0 16px rgba(0,212,255,0.04);}
+.btn{background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:4px;padding:11px 26px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;white-space:nowrap;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--cyan);transform:translateX(-100%);transition:transform .2s;z-index:-1;}
+.btn:hover{color:var(--bg);}
+.btn:hover::before{transform:translateX(0);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn:disabled::before{display:none;}
+.btn:disabled:hover{color:var(--cyan);}
+.seed-hint{font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-top:7px;}
+.seed-hint span{color:var(--cyan-dim);cursor:pointer;margin-left:6px;}
+.seed-hint span:hover{color:var(--cyan);}
+
+/* PIPELINE — 7 stages */
+.pipeline{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px;}
+.stage{background:var(--panel);border:1px solid var(--border);padding:8px 8px;display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;color:var(--text-dim);letter-spacing:1px;transition:all .3s;position:relative;overflow:hidden;}
+.stage.active{border-color:var(--cyan);color:var(--cyan);}
+.stage.active::after{content:'';position:absolute;bottom:0;left:0;height:2px;background:var(--cyan);animation:prog 2.5s linear forwards;}
+@keyframes prog{from{width:0}to{width:100%}}
+.stage.done{border-color:var(--green-dim);color:var(--green);}
+.stage.error{border-color:var(--red-dim);color:var(--red);}
+.snum{font-size:14px;font-weight:700;font-family:var(--display);opacity:.4;min-width:16px;}
+.stage.active .snum,.stage.done .snum{opacity:1;}
+.spin{display:none;width:6px;height:6px;border:1px solid var(--cyan-dim);border-top-color:var(--cyan);border-radius:50%;animation:rot .6s linear infinite;margin-left:auto;}
+.stage.active .spin{display:block;}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* LOG */
+.log-panel{background:var(--bg2);border:1px solid var(--border);margin-bottom:14px;}
+.log-hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--border);}
+.log-title{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:3px;color:var(--text-dim);}
+.log-body{font-family:var(--mono);font-size:10px;padding:8px 12px;max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.log-body::-webkit-scrollbar{width:3px;}
+.log-body::-webkit-scrollbar-thumb{background:var(--border);}
+.ll{display:flex;gap:8px;line-height:1.5;animation:fsi .15s ease forwards;opacity:0;}
+@keyframes fsi{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.lts{color:var(--text-muted);flex-shrink:0;font-size:9px;}
+.lst{flex-shrink:0;font-size:9px;}
+.lm{color:var(--text-dim);}
+.ok .lst{color:var(--green);}
+.warn .lst{color:var(--amber);}
+.err .lst{color:var(--red);}
+.info .lst{color:var(--cyan);}
+.live .lst{color:var(--purple);}
+.hi .lm{color:var(--text);}
+
+/* RESULTS GRID */
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.rgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.rpanel{background:var(--panel);border:1px solid var(--border);overflow:hidden;transition:border-color .3s;}
+.rpanel.has{border-color:var(--border-hi);}
+.rpanel.crit{border-color:var(--red-dim)!important;}
+.phdr{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25);}
+.ptitle{font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:3px;color:var(--text);display:flex;align-items:center;gap:6px;}
+.pdot{width:5px;height:5px;border-radius:50%;background:var(--text-muted);transition:background .3s;}
+.rpanel.has .pdot{background:var(--cyan);box-shadow:0 0 5px var(--cyan);}
+.rpanel.crit .pdot{background:var(--red)!important;box-shadow:0 0 5px var(--red)!important;}
+.pcount{font-family:var(--mono);font-size:10px;color:var(--cyan);background:rgba(0,212,255,.07);padding:2px 7px;border:1px solid rgba(0,212,255,.2);}
+.pbody{padding:10px;min-height:80px;max-height:300px;overflow-y:auto;}
+.pbody::-webkit-scrollbar{width:3px;}
+.pbody::-webkit-scrollbar-thumb{background:var(--border-hi);}
+.empty{font-family:var(--mono);font-size:10px;color:var(--text-muted);text-align:center;padding:24px 0;letter-spacing:2px;}
+
+/* DOMAIN LIST */
+.di{display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid rgba(30,45,74,.4);font-family:var(--mono);font-size:11px;animation:fsi .2s ease forwards;opacity:0;}
+.dn{color:var(--cyan);flex:1;word-break:break-all;cursor:default;pointer-events:none;user-select:text;}
+.badge{font-size:8px;letter-spacing:1px;padding:1px 4px;border:1px solid;white-space:nowrap;}
+.bc{color:var(--purple);border-color:var(--purple-dim);}
+.bs{color:var(--amber);border-color:var(--amber-dim);}
+.bseed{color:var(--green);border-color:var(--green-dim);}
+.bneibu{color:var(--red);border-color:var(--red-dim);animation:flash 1s step-end infinite;}
+.bdemo{color:var(--text-muted);border-color:var(--text-muted);}
+@keyframes flash{50%{opacity:.3}}
+
+/* INFRA ROWS */
+.irow2{display:grid;grid-template-columns:130px 1fr auto;gap:5px;align-items:start;padding:5px 0;border-bottom:1px solid rgba(30,45,74,.4);font-family:var(--mono);font-size:10px;animation:fsi .2s ease forwards;opacity:0;}
+.ik{color:var(--text-dim);}
+.iv{color:var(--text);word-break:break-all;cursor:default;pointer-events:none;user-select:text;}
+.fw{font-size:8px;padding:1px 4px;border:1px solid;white-space:nowrap;}
+.fw-warn{color:var(--amber);border-color:var(--amber-dim);}
+.fw-crit{color:var(--red);border-color:var(--red-dim);}
+.fw-ok{color:var(--green);border-color:var(--green-dim);}
+.fw-info{color:var(--purple);border-color:var(--purple-dim);}
+.fw-live{color:var(--cyan);border-color:var(--cyan-dim);}
+
+/* SCORE */
+.score-wrap{display:flex;align-items:center;gap:20px;padding:16px 20px;}
+.score-ring{position:relative;flex-shrink:0;}
+.score-ring svg{overflow:visible;}
+.score-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.score-big{font-family:var(--display);font-size:30px;font-weight:700;line-height:1;}
+.score-lbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text-dim);}
+.score-right{flex:1;}
+.score-factors{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.sf{display:flex;flex-direction:column;gap:2px;}
+.sf-lbl{font-family:var(--mono);font-size:8px;color:var(--text-dim);letter-spacing:1px;}
+.sf-bw{height:3px;background:var(--bg2);border:1px solid var(--border);}
+.sf-bar{height:100%;transition:width 1s cubic-bezier(.4,0,.2,1);width:0;}
+.sf-val{font-family:var(--display);font-size:11px;font-weight:600;}
+.confidence-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.conf-badge{padding:2px 8px;border:1px solid;font-size:9px;letter-spacing:2px;}
+.conf-HIGH{color:var(--red);border-color:var(--red-dim);}
+.conf-MEDIUM{color:var(--amber);border-color:var(--amber-dim);}
+.conf-LOW{color:var(--text-dim);border-color:var(--border);}
+
+/* WALLET ALERT */
+.walert{background:rgba(255,51,85,.05);border:1px solid var(--red-dim);border-left:3px solid var(--red);padding:14px 18px;display:none;gap:12px;align-items:flex-start;margin-bottom:10px;}
+.walert.show{display:flex;}
+.wa-icon{font-size:22px;color:var(--red);flex-shrink:0;}
+.wa-title{font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:3px;color:var(--red);margin-bottom:5px;}
+.wa-detail{font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.8;}
+.wa-detail code{color:var(--red);background:rgba(255,51,85,.1);padding:0 3px;}
+.revoke{display:inline-block;margin-top:6px;font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:2px;color:var(--red);border:1px solid var(--red-dim);padding:3px 10px;text-decoration:none;transition:all .2s;}
+.revoke:hover{background:var(--red);color:var(--bg);}
+
+/* SIGNAL GRID */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.sitem{background:var(--bg2);border:1px solid var(--border);padding:9px 10px;animation:fsi .2s ease forwards;opacity:0;}
+.slbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text-dim);margin-bottom:4px;}
+.sval{font-family:var(--display);font-size:18px;font-weight:600;line-height:1;}
+.ssub{font-family:var(--mono);font-size:8px;color:var(--text-dim);margin-top:3px;}
+.shi{color:var(--red);text-shadow:0 0 10px rgba(255,51,85,.4);}
+.smed{color:var(--amber);}
+.slo{color:var(--green);}
+
+/* REG CHART */
+.rchart{display:flex;flex-direction:column;gap:5px;}
+.rrow{display:grid;grid-template-columns:130px 1fr 36px;gap:5px;align-items:center;animation:fsi .2s ease forwards;opacity:0;}
+.rname{font-family:var(--mono);font-size:9px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rname.flag{color:var(--red);}
+.rbg{height:11px;background:var(--bg2);border:1px solid var(--border);overflow:hidden;}
+.rfill{height:100%;transition:width .8s cubic-bezier(.4,0,.2,1);width:0;}
+.rfill.p{background:rgba(255,51,85,.55);}
+.rfill.s{background:rgba(0,212,255,.28);}
+.rct{font-family:var(--mono);font-size:9px;color:var(--text-dim);text-align:right;}
+
+/* CERT TIMELINE */
+.timeline-chart{padding:6px 0;}
+.tl-bar-wrap{display:flex;align-items:flex-end;gap:2px;height:60px;margin-bottom:4px;}
+.tl-bar{flex:1;background:rgba(0,212,255,.3);border:1px solid var(--cyan-dim);transition:height .6s ease;min-height:2px;position:relative;cursor:default;}
+.tl-bar:hover{background:rgba(0,212,255,.5);}
+.tl-bar-tip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);padding:3px 6px;font-family:var(--mono);font-size:8px;color:var(--cyan);white-space:nowrap;z-index:10;margin-bottom:2px;}
+.tl-bar:hover .tl-bar-tip{display:block;}
+.tl-labels{display:flex;gap:2px;}
+.tl-label{flex:1;font-family:var(--mono);font-size:7px;color:var(--text-muted);text-align:center;overflow:hidden;}
+.tl-summary{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:6px;line-height:1.6;}
+.tl-summary span{color:var(--amber);}
+
+/* URLSCAN */
+.us-row{display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(30,45,74,.4);font-family:var(--mono);font-size:10px;animation:fsi .2s ease forwards;opacity:0;}
+.us-key{color:var(--text-dim);width:80px;flex-shrink:0;font-size:9px;}
+.us-val{color:var(--text);flex:1;cursor:default;pointer-events:none;user-select:text;}
+
+/* JS SCAN */
+.js-finding{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(30,45,74,.4);animation:fsi .2s ease forwards;opacity:0;}
+.js-icon{font-size:14px;flex-shrink:0;}
+.js-text{font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.5;flex:1;}
+.js-text strong{color:var(--red);}
+
+/* REVAL */
+.reval-panel{background:var(--panel);border:1px solid var(--border);padding:14px 18px;display:none;margin-bottom:10px;}
+.reval-panel.show{display:block;}
+.reval-title{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:3px;color:var(--text);margin-bottom:10px;}
+.rgrid2{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.ritem{background:var(--bg2);border:1px solid var(--border);padding:8px;}
+.rdom{font-family:var(--mono);font-size:10px;color:var(--cyan);margin-bottom:4px;word-break:break-all;cursor:text;pointer-events:none;user-select:text;text-decoration:none!important;}
+.rdom a,.rdom *{pointer-events:none!important;text-decoration:none!important;color:inherit!important;}
+
+/* CNOTE */
+.cnote{background:rgba(170,85,255,.04);border:1px solid var(--purple-dim);border-left:3px solid var(--purple);padding:9px 12px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.7;margin-bottom:10px;display:none;}
+.cnote.show{display:block;}
+
+/* EXPORT */
+.ebar{display:none;flex-direction:column;gap:8px;padding:12px 0;border-top:1px solid var(--border);margin-top:16px;}
+.ebar.show{display:flex;}
+.erow{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.ebtn{background:transparent;border:1px solid var(--border-hi);color:var(--text-dim);font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:3px;padding:7px 14px;cursor:pointer;transition:all .2s;}
+.ebtn:hover{border-color:var(--cyan);color:var(--cyan);}
+.ebtn.primary{border-color:var(--cyan);color:var(--cyan);}
+.ebtn.primary:hover{background:var(--cyan);color:var(--bg);}
+.defang-wrap{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;color:var(--text-dim);cursor:pointer;user-select:none;}
+.defang-wrap:hover{color:var(--amber);}
+.dcb{width:12px;height:12px;border:1px solid var(--border-hi);background:var(--bg2);appearance:none;cursor:pointer;position:relative;flex-shrink:0;}
+.dcb:checked{background:rgba(255,170,0,.12);border-color:var(--amber);}
+.dcb:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--amber);font-size:9px;}
+.dbadge{font-family:var(--mono);font-size:8px;padding:2px 5px;border:1px solid var(--amber-dim);color:var(--amber);background:rgba(255,170,0,.05);display:none;}
+.dbadge.show{display:inline;}
+
+/* BULK TABLE */
+.btable{width:100%;border-collapse:collapse;}
+.btable th{text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-muted);padding:5px 8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);}
+.btable td{padding:5px 8px;font-family:var(--mono);font-size:10px;border-bottom:1px solid rgba(30,45,74,.3);cursor:default;pointer-events:none;user-select:text;}
+
+/* PHISH */
+.ph-ind{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;padding:5px 0;}
+.ph-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ph-dot.hit{background:var(--red);box-shadow:0 0 5px var(--red);}
+.ph-dot.miss{background:var(--text-muted);}
+
+/* CERT INTEL */
+.cert-row{display:flex;gap:6px;font-family:var(--mono);font-size:10px;padding:4px 0;border-bottom:1px solid rgba(30,45,74,.3);animation:fsi .15s ease forwards;opacity:0;}
+.cert-date{color:var(--text-dim);width:85px;flex-shrink:0;font-size:9px;}
+.cert-dn{color:var(--cyan);flex:1;word-break:break-all;cursor:default;pointer-events:none;user-select:text;}
+.cert-ca{color:var(--purple);font-size:9px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HELP MODAL -->
+<div class="modal-overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
+<div class="modal">
+  <div class="modal-hdr">
+    <div class="modal-title">CRUCIBLE SIGINT — ANALYST GUIDE</div>
+    <button class="modal-close" onclick="closeHelp()">✕</button>
+  </div>
+  <div class="modal-body">
+
+    <div class="help-section">
+      <h3>WHAT IS CRUCIBLE SIGINT?</h3>
+      <p>CRUCIBLE is a passive OSINT infrastructure fingerprinting engine built on the methodology described by <strong>Ryan McDonald</strong> (Principal Security Engineer | USMC 0341) in his analysis of the <strong>DSJ Exchange / BG Wealth Sharing LTD</strong> pig-butchering operation — a $150M crypto fraud that victimized thousands of people.</p>
+      <div style="background:rgba(0,212,255,0.04);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:12px 16px;margin:12px 0;font-family:var(--mono);font-size:10px;line-height:1.9;color:var(--text-dim);">
+        <div style="color:var(--cyan);font-size:11px;font-weight:600;margin-bottom:4px;letter-spacing:1px;">▸ METHODOLOGY CREDIT — RYAN McDONALD</div>
+        <div><strong style="color:var(--text);">"Fingerprinting Malicious Infrastructure Using Free Resources"</strong></div>
+        <div>Principal Security Engineer | USMC 0341 &nbsp;·&nbsp; Published LinkedIn, May 2026</div>
+        <div style="margin-top:8px;">Ryan demonstrated — using only free passive sources (crt.sh, urlscan.io, DNS, WHOIS, manual JS inspection) — how a single confirmed-bad domain maps an entire criminal infrastructure cluster of 47+ domains, identifies wallet drain mechanisms, and reveals the two-layer brand structure of a $150M pig-butchering operation.</div>
+        <div style="margin-top:6px;color:var(--text);">CRUCIBLE automates that methodology. The investigative framework is Ryan's work. This tool is the automation layer built on top of it.</div>
+      </div>
+      <p>It automates the 5-stage passive pivot Ryan performed manually: certificate transparency → DNS → IP intelligence → WHOIS/RDAP → threat scoring. Version 5 adds urlscan.io corroboration, live JS bundle scanning for wallet drain patterns, cert issuance timelines, and a 12-signal weighted threat model.</p>
+      <p style="margin-top:8px;"><strong>All API calls are server-side (Python/FastAPI). Zero CORS issues. No browser restrictions. No API keys required.</strong></p>
+    </div>
+
+    <div class="help-section">
+      <h3>WHAT IT DOES — 7-STAGE PIPELINE</h3>
+      <ul>
+        <li><strong>Stage 1 — Cert Transparency (crt.sh + certspotter):</strong> Queries certificate transparency logs for all TLS certificates ever issued for the seed domain and its subdomains. Finds sister domains sharing the same cert infrastructure. Flags NEIBU (内部 = "internal") subdomains — a near-certain Chinese-dev admin panel tell.</li>
+        <li><strong>Stage 2 — DNS Resolution:</strong> Resolves all record types (A, AAAA, MX, NS, TXT, CNAME, SOA) via Google DNS-over-HTTPS. Reveals nameserver patterns, MX infrastructure, SPF records, and parking indicators.</li>
+        <li><strong>Stage 3 — IP Intelligence:</strong> Enriches resolved IPs with ISP, ASN, country, and hosting type detection. Flags Chinese cloud providers (Alibaba, Tencent), CDN masking (Cloudflare, AWS Global Accelerator), and scam-kit hosting ASNs.</li>
+        <li><strong>Stage 4 — RDAP Registration:</strong> Pulls domain registration data including registrar, creation date, status flags, and nameservers. Flags scam-kit registrars (gname.com, nicenic) and fresh domains (&lt;90 days).</li>
+        <li><strong>Stage 5 — urlscan.io Corroboration:</strong> Checks urlscan.io for historical scans of the domain. High scan count = well-known bad domain. Also reveals additional IPs and ASNs from browser-based scanning.</li>
+        <li><strong>Stage 6 — JS Bundle Scan:</strong> Fetches the live domain and linked JS bundles, scanning for Ryan's key finding: MAX_UINT <code>approve(0xffff...ffff)</code> in deposit flows, ERC-20/TRC-20 wallet interfaces, and iOS .mobileconfig bypass patterns.</li>
+        <li><strong>Stage 7 — Threat Score:</strong> Computes a 12-signal weighted composite score with confidence rating. Escalation floors prevent confirmed operations from scoring artificially low due to partial data.</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h3>HOW TO INTERPRET RESULTS</h3>
+      <h4>Threat Score</h4>
+      <div class="score-band">
+        <div class="band band-lo">0–39 · LOW — insufficient signals or clean domain</div>
+        <div class="band band-med">40–69 · MEDIUM — suspicious, investigate further</div>
+        <div class="band band-hi">70–100 · HIGH — confirmed or likely malicious</div>
+      </div>
+      <p style="margin-top:8px;">Confidence (HIGH/MEDIUM/LOW) indicates how many data sources contributed to the score. A HIGH score with LOW confidence means one strong signal fired but others couldn't be evaluated — worth investigating but don't share without corroboration.</p>
+      <h4>Key Signals</h4>
+      <ul>
+        <li><strong>NEIBU ADMIN PORTAL [weight 3.0]:</strong> Near-certain scam-kit tell. "neibu" (内部) = internal in Chinese. Admin panel domains for the operation.</li>
+        <li><strong>JS WALLET DRAIN [weight 3.0]:</strong> MAX_UINT approve() = persistent theft mechanism. Approval survives domain takedowns.</li>
+        <li><strong>KNOWN OPERATION MATCH [weight 3.0]:</strong> Domain matches documented DSJ/BG Wealth Sharing infrastructure fingerprint.</li>
+        <li><strong>SCAM NAMING PATTERN [weight 2.5]:</strong> Short random prefixes (dsj*, ffs*, ge7*), suspicious TLDs (.cc, .top), or known scam keywords.</li>
+        <li><strong>DOMAIN VOLUME [weight 2.0]:</strong> 10+ domains from CT = scam-kit-as-a-service. Single operators running 47+ frontends with admin-panel-managed rotation.</li>
+      </ul>
+      <h4>What Registrars Mean</h4>
+      <ul>
+        <li><strong>gname.com Pte. Ltd., nicenic:</strong> Singapore/China-based, Chinese-developer-preferred. Primary scam-kit registrar — very high signal.</li>
+        <li><strong>Hostinger, Namesilo, Namecheap:</strong> Common on funnel/recruitment domains. Medium signal — present in the DSJ operation but not definitive alone.</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h3>EFFECTIVE INVESTIGATION WORKFLOW</h3>
+      <ul>
+        <li><strong>Start with a confirmed-bad seed.</strong> One domain from a victim, a report, or law enforcement disclosure. The pivot works from that single seed.</li>
+        <li><strong>Let crt.sh build the cluster.</strong> The wildcard query (%.domain.com) surfaces all subdomains and often reveals sister frontends sharing the same cert infrastructure. The full DSJ cluster of 47 domains was found this way.</li>
+        <li><strong>Check NEIBU domains immediately.</strong> Any domain flagged NEIBU is an admin panel. Those are the most sensitive findings — they reveal the operator layer, not the victim-facing frontend.</li>
+        <li><strong>Two-layer brand structure:</strong> Ryan's key insight — scam operations have a recruitment brand (BG Wealth Sharing) AND a trading platform brand (DSJ Exchange). Investigate both. Finding only one layer = finding half the operation.</li>
+        <li><strong>Re-run weekly.</strong> What goes NXDOMAIN = successful takedown. WHOIS updates on the same day you check = operator is still active and watching.</li>
+        <li><strong>Victim immediate action:</strong> If MAX_UINT drain detected, direct victims to revoke.cash immediately. The approval persists on-chain after every domain dies.</li>
+        <li><strong>Defang before sharing.</strong> Use the DEFANG toggle on all exports. Standard TLP convention: dots → [.], :// → [://].</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h3>MODES</h3>
+      <ul>
+        <li><strong>Standard:</strong> Full 7-stage pipeline. Use for initial investigation of any suspected malicious domain.</li>
+        <li><strong>Investigator:</strong> Verbose output, raw API responses in JSON export. Use when you need full evidence chain for a report or LEA referral.</li>
+        <li><strong>Phishing / Brand Abuse:</strong> Point at YOUR domain to find lookalikes in cert transparency. Returns risk score, live DNS check, and age of each lookalike.</li>
+        <li><strong>Cert Intelligence:</strong> Direct crt.sh query with wildcard support. Use for subdomain enumeration or historical cert pattern analysis.</li>
+        <li><strong>Bulk IOC:</strong> Paste up to 50 domains/IPs. Enriches each with DNS, IP intel, and RDAP. Exports SIEM-ready CSV.</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h3>DEMO SEEDS — CLICK TO LOAD</h3>
+      <p style="margin-bottom:10px;">These are confirmed domains from documented criminal operations. Running them demonstrates the full pipeline with real data.</p>
+      <div class="seed-cards">
+        <div class="seed-card" onclick="loadAndClose('exofdsj09.net')">
+          <div class="sc-domain">exofdsj09.net</div>
+          <div class="sc-op">DSJ EXCHANGE / BG WEALTH SHARING</div>
+          <div class="sc-desc">Primary seed from Ryan McDonald's investigation. Pig-butchering crypto fraud, $150M victim losses, $41M frozen by FBI Operation Level Up. Expect 40+ domains via crt.sh, NEIBU admin portals, gname.com registrar, Alibaba Cloud SG hosting, Cloudflare masking.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">WALLET DRAIN</span>
+            <span class="sc-badge crit">NEIBU PORTALS</span>
+            <span class="sc-badge warn">47+ FRONTENDS</span>
+            <span class="sc-badge warn">GNAME REGISTRAR</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadAndClose('dsjexchange.com')">
+          <div class="sc-domain">dsjexchange.com</div>
+          <div class="sc-op">DSJ EXCHANGE — TRADING PLATFORM</div>
+          <div class="sc-desc">The victim-facing trading platform brand. AWS Global Accelerator IPs (15.197.x.x, 3.33.x.x) — true origin masked. Created March 2026 — fresh domain, operation still active. Score ~70+. Good for demonstrating CDN masking detection.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">KNOWN OP</span>
+            <span class="sc-badge warn">AWS MASKING</span>
+            <span class="sc-badge warn">73 DAYS OLD</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadAndClose('bggracefulwealth.com')">
+          <div class="sc-domain">bggracefulwealth.com</div>
+          <div class="sc-op">BG WEALTH SHARING — RECRUITMENT</div>
+          <div class="sc-desc">Recruitment funnel layer of the operation. Hostinger registrar, Hostinger IPs (AS47583), DNS parking nameservers. The "parent brand" victims experience before being funneled to DSJ Exchange. Demonstrates two-layer brand structure detection.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">KNOWN OP</span>
+            <span class="sc-badge warn">HOSTINGER</span>
+            <span class="sc-badge warn">DNS PARKED</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadAndClose('bgwealthalert.com')">
+          <div class="sc-domain">bgwealthalert.com</div>
+          <div class="sc-op">BG WEALTH SHARING — ALERT FUNNEL</div>
+          <div class="sc-desc">Secondary recruitment funnel. Used for recruiter notifications and victim communications. Part of the MLM pyramid structure. Tests scam naming pattern detection and Hostinger infrastructure fingerprinting.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">KNOWN OP</span>
+            <span class="sc-badge warn">FUNNEL DOMAIN</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadAndClose('copypasteandconfirm.com')">
+          <div class="sc-domain">copypasteandconfirm.com</div>
+          <div class="sc-op">DSJ — RECRUITER INSTRUCTION DOMAIN</div>
+          <div class="sc-desc">Recruitment instruction domain used to onboard victims through copy-paste social engineering scripts. The name itself is the tell — operators instruct recruiters to have victims "copy, paste, and confirm" wallet transactions.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">KNOWN OP</span>
+            <span class="sc-badge crit">SOCIAL ENG</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadAndClose('wxpass.net')">
+          <div class="sc-domain">wxpass.net</div>
+          <div class="sc-op">DSJ — SINKHOLED DOMAIN</div>
+          <div class="sc-desc">Previously active DSJ infrastructure domain, now sinkholed to 127.0.0.1 following abuse reports. Good for demonstrating that takedowns happen — domain resolves to loopback, RDAP may show clientHold status. Operation rotated to new domains.</div>
+          <div class="sc-score">
+            <span class="sc-badge info">SINKHOLED</span>
+            <span class="sc-badge warn">TAKEDOWN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h3>PHISHING / BRAND ABUSE DEMOS — CLICK TO LOAD</h3>
+      <p style="margin-bottom:10px;">These are <strong>legitimate brand domains</strong> — use them as seeds in the Phishing/Brand Abuse mode to find real lookalikes attackers have registered in cert transparency. The tool searches crt.sh for every cert containing the brand name and scores each lookalike by risk. These brands are documented as the most heavily impersonated globally.</p>
+      <div class="seed-cards">
+        <div class="seed-card" onclick="loadPhishAndClose('paypal.com')">
+          <div class="sc-domain">paypal.com</div>
+          <div class="sc-op">TARGET: FINANCIAL / PAYMENT</div>
+          <div class="sc-desc">Consistently the most impersonated financial brand. Expect hundreds of lookalikes: paypal-secure.com, paypallogin.net, pay-pal-verify.com. Common patterns: -secure, -verify, -login suffixes. Most use Let's Encrypt DV certs to appear legitimate. High CT visibility.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">HUNDREDS OF LOOKALIKES</span>
+            <span class="sc-badge warn">CREDENTIAL HARVEST</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadPhishAndClose('coinbase.com')">
+          <div class="sc-domain">coinbase.com</div>
+          <div class="sc-op">TARGET: CRYPTO EXCHANGE</div>
+          <div class="sc-desc">Heavy phishing target. Attackers register clusters of lookalikes before market volatility events to harvest credentials. Common: coinbase-login.com, coinbasewallet.net, coinbase-support.org. The DSJ Exchange operation used coinbase.* as a recruiter subdomain pattern on their funnel domains.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">CLUSTER REGISTRATION</span>
+            <span class="sc-badge warn">CRYPTO CREDENTIALS</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadPhishAndClose('microsoft.com')">
+          <div class="sc-domain">microsoft.com</div>
+          <div class="sc-op">TARGET: ENTERPRISE / M365</div>
+          <div class="sc-desc">Ranked #1 or #2 most impersonated brand globally (Check Point Q4 2025). M365 credential theft = full corporate email access. AiTM (adversary-in-the-middle) phishing kits like Tycoon 2FA and Rockstar 2FA specifically target Microsoft auth flows. Expect MX records pointing at phishing infrastructure.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">#1 IMPERSONATED</span>
+            <span class="sc-badge warn">AITM KITS</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadPhishAndClose('metamask.io')">
+          <div class="sc-domain">metamask.io</div>
+          <div class="sc-op">TARGET: CRYPTO WALLET</div>
+          <div class="sc-desc">Wallet credential and seed phrase harvesting. Documented homoglyph attacks using lookalike Unicode characters (Japanese Hiragana ん) in domain names since late 2024. Also impersonated via fake Chrome extensions. Seed phrase capture = complete wallet drain with no recovery possible.</div>
+          <div class="sc-score">
+            <span class="sc-badge crit">SEED PHRASE HARVEST</span>
+            <span class="sc-badge warn">HOMOGLYPH ATTACKS</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadPhishAndClose('amazon.com')">
+          <div class="sc-domain">amazon.com</div>
+          <div class="sc-op">TARGET: E-COMMERCE / CLOUD</div>
+          <div class="sc-desc">Top-3 impersonated brand. Two distinct attack surfaces: consumer credential + payment card theft (fake order confirmation, account suspension), and AWS credential theft targeting developers (fake console login pages). Both show high CT lookalike volume with -login, -secure, -account patterns.</div>
+          <div class="sc-score">
+            <span class="sc-badge warn">DUAL ATTACK SURFACE</span>
+            <span class="sc-badge warn">HIGH CT VOLUME</span>
+          </div>
+        </div>
+        <div class="seed-card" onclick="loadPhishAndClose('apple.com')">
+          <div class="sc-domain">apple.com</div>
+          <div class="sc-op">TARGET: CONSUMER / APPLEID</div>
+          <div class="sc-desc">iCloud credential harvesting via fake storage-full alerts. "Review and sign" phishing via fake AppleID pages. High-value target because AppleID = iCloud photos, Find My (device tracking), payment cards, and often reused password. Expect apple-id.com, icloud-login.net, appleid-verify.com patterns.</div>
+          <div class="sc-score">
+            <span class="sc-badge warn">ICLOUD HARVEST</span>
+            <span class="sc-badge warn">STORAGE ALERT LURE</span>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--text-muted);">NOTE: These are the <strong style="color:var(--text-dim);">legitimate</strong> brand domains — not phishing domains. Enter them in Phishing/Brand Abuse mode to find the fakes attacking them. The tool will never link to or load the lookalike domains it finds.</p>
+    </div>
+
+    <div class="help-section">
+      <h3>TECHNICAL NOTES</h3>
+      <ul>
+        <li><strong>APIs used (all free, no auth):</strong> crt.sh (CT logs), certspotter.com (CT fallback), freeipapi.com (IP intel), dns.google (DoH), rdap.org (registration), urlscan.io (historical scans)</li>
+        <li><strong>crt.sh is flaky</strong> — it runs on a single Postgres instance and goes down under load. certspotter.com is the fallback. If both fail, retry in 5–10 minutes.</li>
+        <li><strong>JS scan limitations</strong> — domains behind Cloudflare bot protection may block the fetch. The scan is opportunistic, not guaranteed.</li>
+        <li><strong>Rate limits</strong> — freeipapi.com and urlscan.io have rate limits. The tool includes 300ms delays between IP lookups to respect them.</li>
+        <li><strong>No active probing</strong> — CRUCIBLE never sends exploit payloads, port scans, or authenticated requests. All data comes from passive sources and the live domain's public HTTP interface.</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div>
+    <div class="logo">CRUCIBLE</div>
+    <div class="logo-sub">SIGINT · INFRASTRUCTURE FINGERPRINT ENGINE · v5.0 · PYTHON/FASTAPI</div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Switch between dark terminal and light paper theme">
+      <span class="theme-icon" id="themeIcon">☀</span>
+      <span id="themeLabel">PAPER MODE</span>
+    </button>
+    <button class="btn-help" onclick="openHelp()">? HELP / QUICKSTART</button>
+    <div class="hdr-meta">
+      <div><span class="dot"></span>PASSIVE OSINT · NO ACTIVE PROBING · SERVER-SIDE APIS</div>
+      <div>crt.sh · certspotter · freeipapi · dns.google · urlscan · RDAP</div>
+      <div id="clock">──</div>
+    </div>
+  </div>
+</header>
+
+<!-- MODE TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchMode('standard')">STANDARD</button>
+  <button class="tab" onclick="switchMode('investigator')">INVESTIGATOR</button>
+  <button class="tab" onclick="switchMode('phishing')">PHISHING / BRAND ABUSE</button>
+  <button class="tab" onclick="switchMode('cert')">CERT INTELLIGENCE</button>
+  <button class="tab" onclick="switchMode('bulk')">BULK IOC</button>
+</div>
+
+<!-- API CHIPS -->
+<div class="chips">
+  <div class="chip" id="chip-crtsh"><div class="chip-dot"></div>crt.sh</div>
+  <div class="chip" id="chip-certspotter"><div class="chip-dot"></div>certspotter ↩</div>
+  <div class="chip" id="chip-ipapi"><div class="chip-dot"></div>freeipapi.com</div>
+  <div class="chip" id="chip-dns"><div class="chip-dot"></div>dns.google</div>
+  <div class="chip" id="chip-urlscan"><div class="chip-dot"></div>urlscan.io</div>
+  <div class="chip" id="chip-rdap"><div class="chip-dot"></div>RDAP</div>
+</div>
+
+<!-- ══ STANDARD MODE ══ -->
+<div class="mode active" id="mode-standard">
+  <div class="ipanel" data-lbl="SEED DOMAIN INPUT">
+    <div class="ilabel">// SEED DOMAIN — ONE CONFIRMED-BAD DOMAIN TO BEGIN PIVOT</div>
+    <div class="irow">
+      <div class="iwrap"><span class="ipfx">◈</span>
+        <input class="seed" id="seedInput" type="text" placeholder="exofdsj09.net"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="253"
+          onkeydown="if(event.key==='Enter')startPipeline()">
+      </div>
+      <button class="btn" id="execBtn" onclick="startPipeline()">EXECUTE</button>
+    </div>
+    <div class="seed-hint">DEMO SEEDS (click to load):
+      <span onclick="document.getElementById('seedInput').value='exofdsj09.net'">exofdsj09.net</span>
+      <span onclick="document.getElementById('seedInput').value='dsjexchange.com'">dsjexchange.com</span>
+      <span onclick="document.getElementById('seedInput').value='bggracefulwealth.com'">bggracefulwealth.com</span>
+      <span onclick="document.getElementById('seedInput').value='bgwealthalert.com'">bgwealthalert.com</span>
+      <span onclick="document.getElementById('seedInput').value='copypasteandconfirm.com'">copypasteandconfirm.com</span>
+      — <span onclick="openHelp()" style="color:var(--purple);">? what to expect</span>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="stage" id="st-1"><span class="snum">01</span><span>CRT.SH</span><span class="spin"></span></div>
+    <div class="stage" id="st-2"><span class="snum">02</span><span>DNS</span><span class="spin"></span></div>
+    <div class="stage" id="st-3"><span class="snum">03</span><span>IP INTEL</span><span class="spin"></span></div>
+    <div class="stage" id="st-4"><span class="snum">04</span><span>RDAP</span><span class="spin"></span></div>
+    <div class="stage" id="st-5"><span class="snum">05</span><span>URLSCAN</span><span class="spin"></span></div>
+    <div class="stage" id="st-6"><span class="snum">06</span><span>JS SCAN</span><span class="spin"></span></div>
+    <div class="stage" id="st-7"><span class="snum">07</span><span>SCORE</span><span class="spin"></span></div>
+  </div>
+
+  <div class="log-panel">
+    <div class="log-hdr"><div class="log-title">EXECUTION LOG</div><span id="runIndicator" style="font-family:var(--mono);font-size:8px;color:var(--text-muted);">READY</span></div>
+    <div class="log-body" id="logBody">
+      <div class="ll info hi"><span class="lts">──:──:──</span><span class="lst">[READY]</span><span class="lm">CRUCIBLE SIGINT v5.0 — 7-stage pipeline · 12-signal scoring · server-side APIs · click ? HELP for analyst guide</span></div>
+    </div>
+  </div>
+
+  <div class="cnote" id="corsNote"></div>
+  <div class="walert" id="walertStd">
+    <div class="wa-icon">⚠</div>
+    <div>
+      <div class="wa-title">MAX_UINT WALLET DRAIN — CRITICAL</div>
+      <div class="wa-detail">
+        <code>approve(0xffff...ffff)</code> detected. Operator can drain all USDT at any time.<br>
+        Approval persists after every domain takedown. Victims must act immediately.<br>
+        <a class="revoke" href="https://revoke.cash" target="_blank" rel="noopener noreferrer">→ REVOKE.CASH — REVOKE TOKEN APPROVALS NOW</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsStd">
+    <div class="rgrid">
+      <div class="rpanel" id="domainPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>DOMAIN FAMILY</div><div class="pcount" id="domainCount">0</div></div>
+        <div class="pbody" id="domainBody"><div class="empty">AWAITING PIVOT</div></div>
+      </div>
+      <div class="rpanel" id="dnsPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>DNS RECORDS</div><div class="pcount" id="dnsCount">──</div></div>
+        <div class="pbody" id="dnsBody"><div class="empty">AWAITING RESOLVE</div></div>
+      </div>
+    </div>
+
+    <div class="rgrid3">
+      <div class="rpanel" id="infraPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>IP INTELLIGENCE</div><div class="pcount" id="infraCount">──</div></div>
+        <div class="pbody" id="infraBody"><div class="empty">AWAITING IP INTEL</div></div>
+      </div>
+      <div class="rpanel" id="urlscanPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>URLSCAN.IO</div><div class="pcount" id="urlscanCount">──</div></div>
+        <div class="pbody" id="urlscanBody"><div class="empty">AWAITING</div></div>
+      </div>
+      <div class="rpanel" id="jsScanPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>JS BUNDLE SCAN</div><div class="pcount" id="jsScanCount">──</div></div>
+        <div class="pbody" id="jsScanBody"><div class="empty">AWAITING</div></div>
+      </div>
+    </div>
+
+    <div class="rgrid">
+      <div class="rpanel" id="rdapPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>RDAP / REGISTRATION</div><div class="pcount" id="rdapCount">──</div></div>
+        <div class="pbody" id="rdapBody"><div class="empty">AWAITING RDAP</div></div>
+      </div>
+      <div class="rpanel" id="timelinePanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>CERT ISSUANCE TIMELINE</div><div class="pcount" id="timelineCount">──</div></div>
+        <div class="pbody" id="timelineBody"><div class="empty">AWAITING</div></div>
+      </div>
+    </div>
+
+    <div class="rgrid">
+      <div class="rpanel" id="signalPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>THREAT SIGNALS</div></div>
+        <div class="pbody" id="signalBody"><div class="empty">AWAITING ANALYSIS</div></div>
+      </div>
+      <div class="rpanel" id="regPanel">
+        <div class="phdr"><div class="ptitle"><div class="pdot"></div>REGISTRAR CONCENTRATION</div><div class="pcount" id="regCount">──</div></div>
+        <div class="pbody" id="regBody"><div class="empty">AWAITING DATA</div></div>
+      </div>
+    </div>
+
+    <div class="rpanel" id="scorePanel" style="margin-bottom:10px;">
+      <div class="phdr"><div class="ptitle"><div class="pdot"></div>COMPOSITE THREAT SCORE — 12 SIGNALS</div></div>
+      <div id="scoreBody" style="padding:12px;"><div class="empty">AWAITING ANALYSIS</div></div>
+    </div>
+
+    <div class="reval-panel" id="revalPanel">
+      <div class="reval-title">RE-VALIDATION WATCHLIST — RE-RUN PASSIVELY AFTER 7 DAYS</div>
+      <div class="rgrid2" id="revalGrid"></div>
+    </div>
+  </div>
+
+  <div class="ebar" id="ebarStd">
+    <div class="erow">
+      <button class="ebtn primary" onclick="exportJSON('std')">EXPORT JSON</button>
+      <button class="ebtn" onclick="exportIOCs('std')">EXPORT IOC CSV</button>
+      <button class="ebtn" onclick="exportHTMLReport('std')">EXPORT HTML REPORT</button>
+      <button class="ebtn" onclick="copyFindings()">COPY FINDINGS</button>
+    </div>
+    <div class="erow">
+      <label class="defang-wrap"><input type="checkbox" class="dcb" id="defangStd" onchange="updateDefangBadge('defangStd','dbadgeStd')"> DEFANG IOCs ON EXPORT</label>
+      <span class="dbadge" id="dbadgeStd">DEFANGED</span>
+      <span style="font-family:var(--mono);font-size:8px;color:var(--text-muted);">· [.] [://]</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ INVESTIGATOR MODE ══ -->
+<div class="mode" id="mode-investigator">
+  <div style="background:rgba(255,170,0,.05);border:1px solid var(--amber-dim);border-left:3px solid var(--amber);padding:10px 16px;margin-bottom:14px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.7;">
+    <strong style="color:var(--amber);">INVESTIGATOR MODE</strong> — Full data access. Raw API responses in JSON export. IOC data is inert text — no clickable links. Defang before sharing externally.
+  </div>
+  <div class="ipanel" data-lbl="INVESTIGATOR SEED">
+    <div class="ilabel">// DOMAIN OR IP</div>
+    <div class="irow"><div class="iwrap"><span class="ipfx">◈</span>
+      <input class="seed" id="invSeed" type="text" placeholder="domain or IP"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="512"
+        onkeydown="if(event.key==='Enter')startInvestigator()">
+    </div><button class="btn" id="invBtn" onclick="startInvestigator()">EXECUTE</button></div>
+  </div>
+  <div class="log-panel"><div class="log-hdr"><div class="log-title">INVESTIGATOR LOG — VERBOSE</div></div>
+    <div class="log-body" id="invLogBody"><div class="ll info"><span class="lts">──:──:──</span><span class="lst">[READY]</span><span class="lm">Investigator mode — verbose, full raw API responses in JSON export.</span></div></div>
+  </div>
+  <div id="invResults">
+    <div class="rgrid">
+      <div class="rpanel" id="invDomPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>CERT TRANSPARENCY</div><div class="pcount" id="invDomCount">0</div></div><div class="pbody" id="invDomBody"><div class="empty">AWAITING</div></div></div>
+      <div class="rpanel" id="invDnsPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>ALL DNS RECORDS</div><div class="pcount" id="invDnsCount">──</div></div><div class="pbody" id="invDnsBody"><div class="empty">AWAITING</div></div></div>
+    </div>
+    <div class="rgrid">
+      <div class="rpanel" id="invIpPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>IP + ASN</div></div><div class="pbody" id="invIpBody"><div class="empty">AWAITING</div></div></div>
+      <div class="rpanel" id="invRdapPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>RDAP FULL RECORD</div></div><div class="pbody" id="invRdapBody" style="max-height:260px;"><div class="empty">AWAITING</div></div></div>
+    </div>
+  </div>
+  <div class="ebar" id="ebarInv">
+    <div class="erow">
+      <button class="ebtn primary" onclick="exportJSON('inv')">EXPORT FULL JSON</button>
+      <button class="ebtn" onclick="exportIOCs('inv')">EXPORT IOC CSV</button>
+      <button class="ebtn" onclick="exportHTMLReport('inv')">EXPORT HTML REPORT</button>
+    </div>
+    <div class="erow"><label class="defang-wrap"><input type="checkbox" class="dcb" id="defangInv" onchange="updateDefangBadge('defangInv','dbadgeInv')"> DEFANG</label><span class="dbadge" id="dbadgeInv">DEFANGED</span></div>
+  </div>
+</div>
+
+<!-- ══ PHISHING MODE ══ -->
+<div class="mode" id="mode-phishing">
+  <div class="ipanel" data-lbl="BRAND ABUSE ANALYSIS">
+    <div class="ilabel">// YOUR BRAND DOMAIN — FIND LOOKALIKES IN CERT TRANSPARENCY</div>
+    <div class="irow"><div class="iwrap"><span class="ipfx">◈</span>
+      <input class="seed" id="phishSeed" type="text" placeholder="yourcompany.com"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="253"
+        onkeydown="if(event.key==='Enter')startPhishing()">
+    </div><button class="btn" id="phishBtn" onclick="startPhishing()">ANALYZE</button></div>
+    <div class="seed-hint">HEAVILY IMPERSONATED BRANDS (click to load):
+      <span onclick="document.getElementById('phishSeed').value='paypal.com'">paypal.com</span>
+      <span onclick="document.getElementById('phishSeed').value='coinbase.com'">coinbase.com</span>
+      <span onclick="document.getElementById('phishSeed').value='microsoft.com'">microsoft.com</span>
+      <span onclick="document.getElementById('phishSeed').value='metamask.io'">metamask.io</span>
+      <span onclick="document.getElementById('phishSeed').value='amazon.com'">amazon.com</span>
+      <span onclick="document.getElementById('phishSeed').value='apple.com'">apple.com</span>
+      — <span onclick="openHelp()" style="color:var(--purple);">? what to expect</span>
+    </div>
+  </div>
+  <div class="log-panel"><div class="log-hdr"><div class="log-title">PHISHING ANALYSIS LOG</div></div>
+    <div class="log-body" id="phishLog"><div class="ll info"><span class="lts">──:──:──</span><span class="lst">[READY]</span><span class="lm">Enter your brand domain to scan cert transparency for lookalikes.</span></div></div>
+  </div>
+  <div class="rgrid" id="phishResults" style="display:none;">
+    <div class="rpanel" id="phishDomPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>LOOKALIKE DOMAINS</div><div class="pcount" id="phishDomCount">0</div></div><div class="pbody" id="phishDomBody"><div class="empty">AWAITING</div></div></div>
+    <div class="rpanel" id="phishIndPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>RISK INDICATORS</div></div><div class="pbody" id="phishIndBody"><div class="empty">AWAITING</div></div></div>
+  </div>
+  <div class="ebar" id="ebarPhish">
+    <div class="erow"><button class="ebtn primary" onclick="exportJSON('phish')">EXPORT JSON</button><button class="ebtn" onclick="exportHTMLReport('phish')">EXPORT HTML REPORT</button></div>
+    <div class="erow"><label class="defang-wrap"><input type="checkbox" class="dcb" id="defangPhish"> DEFANG</label></div>
+  </div>
+</div>
+
+<!-- ══ CERT INTEL MODE ══ -->
+<div class="mode" id="mode-cert">
+  <div class="ipanel" data-lbl="CERT TRANSPARENCY QUERY">
+    <div class="ilabel">// QUERY — PREFIX WITH %. FOR WILDCARD SUBDOMAIN SCAN</div>
+    <div class="irow"><div class="iwrap"><span class="ipfx">◈</span>
+      <input class="seed" id="certSeed" type="text" placeholder="%.evildomain.com"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="300"
+        onkeydown="if(event.key==='Enter')startCertIntel()">
+    </div><button class="btn" id="certBtn" onclick="startCertIntel()">QUERY</button></div>
+  </div>
+  <div class="log-panel"><div class="log-hdr"><div class="log-title">CERT INTEL LOG</div></div>
+    <div class="log-body" id="certLog"><div class="ll info"><span class="lts">──:──:──</span><span class="lst">[READY]</span><span class="lm">Use %.domain.com for wildcard subdomain enumeration via crt.sh.</span></div></div>
+  </div>
+  <div id="certResults" style="display:none;">
+    <div class="rpanel" style="margin-bottom:10px;" id="certMainPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>CERTIFICATE RECORDS</div><div class="pcount" id="certCount">0</div></div><div class="pbody" id="certBody" style="max-height:380px;"><div class="empty">AWAITING</div></div></div>
+    <div class="rgrid">
+      <div class="rpanel" id="certCaPanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>CA DISTRIBUTION</div></div><div class="pbody" id="certCaBody"><div class="empty">AWAITING</div></div></div>
+      <div class="rpanel" id="certTimePanel"><div class="phdr"><div class="ptitle"><div class="pdot"></div>ISSUANCE TIMELINE</div></div><div class="pbody" id="certTimeBody"><div class="empty">AWAITING</div></div></div>
+    </div>
+  </div>
+  <div class="ebar" id="ebarCert">
+    <div class="erow"><button class="ebtn primary" onclick="exportJSON('cert')">EXPORT JSON</button><button class="ebtn" onclick="exportHTMLReport('cert')">EXPORT HTML REPORT</button></div>
+    <div class="erow"><label class="defang-wrap"><input type="checkbox" class="dcb" id="defangCert"> DEFANG</label></div>
+  </div>
+</div>
+
+<!-- ══ BULK IOC MODE ══ -->
+<div class="mode" id="mode-bulk">
+  <div class="ipanel" data-lbl="BULK IOC PROCESSING">
+    <div class="ilabel">// PASTE IOC LIST — ONE PER LINE — DOMAINS OR IPs — MAX 50</div>
+    <textarea class="seed" id="bulkInput" style="padding:10px 12px;" placeholder="exofdsj09.net&#10;dsj619.cc&#10;47.79.48.180&#10;neibu168x.cc" spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+    <div style="margin-top:8px;display:flex;gap:12px;align-items:center;">
+      <button class="btn" id="bulkBtn" onclick="startBulk()" style="padding:9px 18px;">PROCESS BULK</button>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text-muted);">Defanged IOCs (evil[.]com) auto-refanged · enriched with DNS + IP + RDAP</span>
+    </div>
+  </div>
+  <div class="log-panel">
+    <div class="log-hdr"><div class="log-title">BULK LOG</div><span id="bulkProg" style="font-family:var(--mono);font-size:9px;color:var(--text-dim);">0/0</span></div>
+    <div class="log-body" id="bulkLog"><div class="ll info"><span class="lts">──:──:──</span><span class="lst">[READY]</span><span class="lm">Paste IOC list. Server enriches each with DNS, IP intel, and RDAP in batches.</span></div></div>
+  </div>
+  <div class="rpanel" id="bulkTablePanel" style="margin-bottom:10px;display:none;">
+    <div class="phdr"><div class="ptitle"><div class="pdot"></div>BULK RESULTS</div><div class="pcount" id="bulkCount">0</div></div>
+    <div class="pbody" id="bulkTableBody" style="max-height:480px;overflow-y:auto;padding:0;"><div class="empty" style="padding:24px;">AWAITING</div></div>
+  </div>
+  <div class="ebar" id="ebarBulk">
+    <div class="erow"><button class="ebtn primary" onclick="exportBulkCSV()">EXPORT CSV</button><button class="ebtn" onclick="exportHTMLReport('bulk')">EXPORT HTML REPORT</button></div>
+    <div class="erow"><label class="defang-wrap"><input type="checkbox" class="dcb" id="defangBulk"> DEFANG ON EXPORT</label></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ATTRIBUTION FOOTER -->
+<div style="border-top:1px solid var(--border);padding:16px 24px;max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+  <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);line-height:1.8;">
+    <span style="color:var(--text-dim);">CRUCIBLE SIGINT v5.0</span> &nbsp;·&nbsp;
+    Built by <span style="color:var(--text-dim);">Randy Bator / NEATLABS™</span> &nbsp;·&nbsp;
+    MIT License &nbsp;·&nbsp; Passive OSINT only · No active probing
+  </div>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);text-align:right;line-height:1.8;">
+    Methodology: <span style="color:var(--cyan);">Ryan McDonald</span> —
+    <span style="color:var(--text-dim);">"Fingerprinting Malicious Infrastructure Using Free Resources"</span>
+    &nbsp;·&nbsp; LinkedIn, May 2026
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+// THEME TOGGLE
+// ════════════════════════════════
+const THEME_KEY = 'crucible_theme';
+function applyTheme(theme) {
+  const body = document.body;
+  const icon = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  if (theme === 'light') {
+    body.classList.add('theme-light');
+    icon.textContent = '🌑';
+    label.textContent = 'DARK MODE';
+  } else {
+    body.classList.remove('theme-light');
+    icon.textContent = '☀';
+    label.textContent = 'PAPER MODE';
+  }
+  localStorage.setItem(THEME_KEY, theme);
+}
+function toggleTheme() {
+  const current = document.body.classList.contains('theme-light') ? 'light' : 'dark';
+  applyTheme(current === 'light' ? 'dark' : 'light');
+}
+// Restore saved theme on load
+(function(){
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'light') applyTheme('light');
+  } catch(e) {}
+})();
+
+// ════════════════════════════════
+// SECURITY
+// ════════════════════════════════
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function defang(s){return String(s).replace(/\./g,'[.]').replace(/:\/\//g,'[://]').replace(/@/g,'[@]').replace(/^(https?)/gi,m=>'hxx'+m.slice(1));}
+function refang(s){return String(s).replace(/\[\.]/g,'.').replace(/\[:\/{0,2}]/g,'://').replace(/\[@]/g,'@').replace(/^hxx(p)/i,(_,p)=>'h'+p);}
+function stripTags(h){const d=document.createElement('div');d.innerHTML=h;return d.textContent||'';}
+function safeFilename(s){return String(s).replace(/[^a-z0-9\-_]/gi,'-').slice(0,80);}
+function isDefanged(id){return document.getElementById(id)?.checked||false;}
+function updateDefangBadge(cbId,bdId){document.getElementById(bdId)?.classList.toggle('show',isDefanged(cbId));}
+function safeText(tag,cls,txt){const e=document.createElement(tag);e.className=cls;e.textContent=txt;return e;}
+function downloadBlob(content,filename,type){
+  const b=new Blob([content],{type});const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=filename;a.rel='noopener noreferrer';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(u),5000);
+}
+
+// ════════════════════════════════
+// CLOCK / MODAL / MODE
+// ════════════════════════════════
+function updateClock(){document.getElementById('clock').textContent=new Date().toISOString().replace('T',' ').split('.')[0]+' UTC';}
+updateClock();setInterval(updateClock,1000);
+
+function openHelp(){document.getElementById('helpModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeHelp(){document.getElementById('helpModal').classList.remove('open');document.body.style.overflow='';}
+function loadAndClose(domain){document.getElementById('seedInput').value=domain;closeHelp();switchMode('standard');}
+function loadPhishAndClose(domain){document.getElementById('phishSeed').value=domain;closeHelp();switchMode('phishing');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHelp();});
+
+function switchMode(m){
+  document.querySelectorAll('.tab').forEach((t,i)=>{const modes=['standard','investigator','phishing','cert','bulk'];t.classList.toggle('active',modes[i]===m);});
+  document.querySelectorAll('.mode').forEach(p=>p.classList.remove('active'));
+  document.getElementById('mode-'+m)?.classList.add('active');
+}
+function setStage(n,state){const el=document.getElementById(`st-${n}`);if(!el)return;el.className=`stage ${['active','done','error',''].includes(state)?state:''}`;}
+function setChip(id,state){const c=document.getElementById('chip-'+id);if(!c)return;c.classList.remove('live','fail','pend');if(state)c.classList.add(state);}
+
+// ════════════════════════════════
+// LOG
+// ════════════════════════════════
+function logTo(bodyId,msg,type='info',stage=''){
+  const body=document.getElementById(bodyId);if(!body)return;
+  const ts=new Date().toISOString().split('T')[1].split('.')[0];
+  const safeType=['info','ok','warn','err','live'].includes(type)?type:'info';
+  const line=document.createElement('div');
+  line.className=`ll ${safeType}${msg.length<120?' hi':''}`;
+  const tsS=safeText('span','lts',ts);
+  const stS=safeText('span','lst',`[${stage||safeType.toUpperCase()}]`);
+  const mS=safeText('span','lm',msg);
+  line.appendChild(tsS);line.appendChild(stS);line.appendChild(mS);
+  body.appendChild(line);body.scrollTop=body.scrollHeight;
+}
+const log=(m,t,s)=>logTo('logBody',m,t,s);
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let stdResult=null,invResult=null,phishResult=null,certResult=null,bulkData=null;
+let running=false;
+let domainCount=0,dnsCount=0,ipCount=0;
+
+// ════════════════════════════════
+// STANDARD PIPELINE — SSE
+// ════════════════════════════════
+async function startPipeline(){
+  if(running)return;
+  const seed=document.getElementById('seedInput').value.trim();
+  if(!seed)return;
+  running=true;stdResult=null;domainCount=0;dnsCount=0;ipCount=0;
+  document.getElementById('execBtn').disabled=true;
+  document.getElementById('runIndicator').textContent='RUNNING';
+  document.getElementById('corsNote').classList.remove('show');
+  document.getElementById('walertStd').classList.remove('show');
+  document.getElementById('revalPanel').classList.remove('show');
+  document.getElementById('ebarStd').classList.remove('show');
+  document.getElementById('logBody').innerHTML='';
+  for(let i=1;i<=7;i++)setStage(i,'');
+
+  ['domainPanel','dnsPanel','infraPanel','rdapPanel','signalPanel','regPanel','scorePanel',
+   'urlscanPanel','jsScanPanel','timelinePanel'].forEach(id=>document.getElementById(id)?.classList.remove('has','crit'));
+  ['domainBody','dnsBody','infraBody','rdapBody','signalBody','regBody',
+   'urlscanBody','jsScanBody','timelineBody'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML='<div class="empty">PROCESSING...</div>';
+  });
+  ['domainCount','dnsCount','infraCount','rdapCount','regCount','urlscanCount','jsScanCount','timelineCount'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.textContent='──';
+  });
+  document.getElementById('scoreBody').innerHTML='<div class="empty">PROCESSING...</div>';
+
+  const es=new EventSource(`/api/pipeline/standard?seed=${encodeURIComponent(seed)}`);
+
+  es.addEventListener('log',e=>{const d=JSON.parse(e.data);log(d.msg,d.type,d.stage);});
+  es.addEventListener('stage',e=>{const d=JSON.parse(e.data);setStage(d.n,d.state);});
+  es.addEventListener('chip',e=>{const d=JSON.parse(e.data);setChip(d.id,d.state);});
+
+  es.addEventListener('domains',e=>{
+    const d=JSON.parse(e.data);
+    const body=document.getElementById('domainBody');body.innerHTML='';
+    document.getElementById('domainPanel').classList.add('has');
+    domainCount=0;
+    for(const dom of d.domains){
+      const item=document.createElement('div');item.className='di';
+      item.style.animationDelay=`${Math.min(domainCount,20)*0.03}s`;
+      item.appendChild(safeText('span','dn',dom.name));
+      if(dom.flag==='NEIBU')item.appendChild(safeText('span','badge bneibu','NEIBU 内部'));
+      else if(dom.source==='certspotter')item.appendChild(safeText('span','badge bc','CERTSPOTTER'));
+      else if(dom.source==='cert')item.appendChild(safeText('span','badge bc','CRT.SH'));
+      else if(dom.source==='demo')item.appendChild(safeText('span','badge bdemo','DEMO'));
+      else item.appendChild(safeText('span','badge bseed','SEED'));
+      body.appendChild(item);domainCount++;
+    }
+    document.getElementById('domainCount').textContent=String(domainCount);
+  });
+
+  es.addEventListener('certTimeline',e=>{
+    const d=JSON.parse(e.data);
+    const body=document.getElementById('timelineBody');body.innerHTML='';
+    document.getElementById('timelinePanel').classList.add('has');
+    document.getElementById('timelineCount').textContent=`${d.timeline.length} certs`;
+    if(!d.months||Object.keys(d.months).length===0){body.innerHTML='<div class="empty">NO TIMELINE DATA</div>';return;}
+    const months=Object.entries(d.months).sort();
+    const maxV=Math.max(...months.map(([,v])=>v));
+    const wrap=document.createElement('div');wrap.className='timeline-chart';
+    const barWrap=document.createElement('div');barWrap.className='tl-bar-wrap';
+    const labWrap=document.createElement('div');labWrap.className='tl-labels';
+    for(const[mo,cnt] of months){
+      const pct=maxV>0?Math.round((cnt/maxV)*100):0;
+      const bar=document.createElement('div');bar.className='tl-bar';
+      bar.style.height=`${Math.max(pct,3)}%`;
+      const tip=document.createElement('div');tip.className='tl-bar-tip';tip.textContent=`${mo}: ${cnt}`;
+      bar.appendChild(tip);barWrap.appendChild(bar);
+      const lbl=document.createElement('div');lbl.className='tl-label';
+      lbl.textContent=mo.slice(5);// just MM
+      labWrap.appendChild(lbl);
+    }
+    wrap.appendChild(barWrap);wrap.appendChild(labWrap);
+    const sum=document.createElement('div');sum.className='tl-summary';
+    sum.innerHTML=`<span>${d.timeline.length}</span> certificates · peak month <span>${d.peak_month}</span> (<span>${d.peak_count}</span> certs)`;
+    wrap.appendChild(sum);
+    body.appendChild(wrap);
+  });
+
+  es.addEventListener('dnsRecord',e=>{
+    const d=JSON.parse(e.data);
+    const body=document.getElementById('dnsBody');
+    if(body.querySelector('.empty'))body.innerHTML='';
+    document.getElementById('dnsPanel').classList.add('has');
+    const row=document.createElement('div');row.className='irow2';
+    row.appendChild(safeText('span','fw fw-warn',d.type));
+    row.appendChild(safeText('span','iv',d.value));
+    row.appendChild(safeText('span','fw fw-info',`TTL:${d.ttl}`));
+    body.appendChild(row);dnsCount++;
+    document.getElementById('dnsCount').textContent=`${dnsCount} rec`;
+  });
+
+  es.addEventListener('ipInfo',e=>{
+    const d=JSON.parse(e.data);
+    const body=document.getElementById('infraBody');
+    if(body.querySelector('.empty'))body.innerHTML='';
+    document.getElementById('infraPanel').classList.add('has');
+    const fields=[
+      ['IP',d.ip,'live'],['ISP/ORG',d.info.isp||'?','info'],
+      ['ASN',d.info.as||'?','info'],
+      ['COUNTRY',`${d.info.country||'?'} (${d.info.countryCode||'?'})`,'info'],
+      ['TYPE',d.info.hosting?'DATACENTER':'RESIDENTIAL',d.info.hosting?'warn':'ok'],
+      ['PROXY',d.info.proxy?'DETECTED':'NONE',d.info.proxy?'crit':'ok'],
+    ];
+    for(const[k,v,fc] of fields){
+      const row=document.createElement('div');row.className='irow2';
+      row.appendChild(safeText('span','ik',k));
+      row.appendChild(safeText('span','iv',String(v)));
+      row.appendChild(safeText('span',`fw fw-${fc}`,fc.toUpperCase()));
+      body.appendChild(row);
+    }
+    ipCount++;document.getElementById('infraCount').textContent=`${ipCount} IP`;
+  });
+
+  es.addEventListener('rdap',e=>{
+    const d=JSON.parse(e.data);const s=d.summary;
+    const body=document.getElementById('rdapBody');body.innerHTML='';
+    document.getElementById('rdapPanel').classList.add('has');
+    const scamPrimary=['gname','nicenic','west.cn','bizcn','hichina'];
+    const isFlaggedReg=scamPrimary.some(r=>s.registrar.toLowerCase().includes(r));
+    const fields=[
+      ['REGISTRAR',s.registrar,isFlaggedReg?'crit':'info'],
+      ['STATUS',s.status,'info'],
+      ['CREATED',s.created?.split('T')[0]||'?','info'],
+      ['UPDATED',s.updated?.split('T')[0]||'?','info'],
+      ['EXPIRES',s.expires?.split('T')[0]||'?','info'],
+      ['NAMESERVERS',s.nameservers||'?','info'],
+    ];
+    for(const[k,v,fc] of fields){
+      const row=document.createElement('div');row.className='irow2';
+      row.appendChild(safeText('span','ik',k));
+      row.appendChild(safeText('span','iv',String(v||'?')));
+      row.appendChild(safeText('span',`fw fw-${fc}`,fc.toUpperCase()));
+      body.appendChild(row);
+    }
+    document.getElementById('rdapCount').textContent=s.status?.split(',')[0]?.trim()||'OK';
+  });
+
+  es.addEventListener('urlscan',e=>{
+    const d=JSON.parse(e.data).data;
+    const body=document.getElementById('urlscanBody');body.innerHTML='';
+    document.getElementById('urlscanPanel').classList.add('has');
+    document.getElementById('urlscanCount').textContent=`${d.total} scans`;
+    const rows=[
+      ['TOTAL SCANS',String(d.total||0)],
+      ['UNIQUE IPs',String((d.unique_ips||[]).length)],
+      ['UNIQUE ASNs',String((d.unique_asns||[]).length)],
+      ['SCREENSHOTS',String((d.screenshots||[]).length)],
+    ];
+    for(const[k,v] of rows){
+      const row=document.createElement('div');row.className='us-row';
+      row.appendChild(safeText('span','us-key',k));
+      row.appendChild(safeText('span','us-val',v));
+      body.appendChild(row);
+    }
+    if((d.unique_ips||[]).length>0){
+      const ipRow=document.createElement('div');ipRow.className='us-row';
+      ipRow.appendChild(safeText('span','us-key','IPs SEEN'));
+      ipRow.appendChild(safeText('span','us-val',(d.unique_ips||[]).slice(0,4).join(', ')));
+      body.appendChild(ipRow);
+    }
+  });
+
+  es.addEventListener('jsScan',e=>{
+    const d=JSON.parse(e.data).data;
+    const body=document.getElementById('jsScanBody');body.innerHTML='';
+    const panel=document.getElementById('jsScanPanel');
+    panel.classList.add('has');
+
+    const findings=[];
+    if(d.max_uint){
+      panel.classList.add('crit');
+      findings.push({icon:'⚠',text:'MAX_UINT approve(0xffff...ffff) DETECTED',sev:'crit'});
+    }
+    if(d.erc20) findings.push({icon:'◉',text:'ERC-20 wallet interface (window.ethereum)',sev:'warn'});
+    if(d.trc20) findings.push({icon:'◉',text:'TRC-20 wallet interface (window.tronWeb)',sev:'warn'});
+    for(const p of (d.suspicious_patterns||[])){findings.push({icon:'△',text:p,sev:'warn'});}
+    if(d.bundles_checked>0&&!d.max_uint&&!d.erc20&&!d.trc20&&(d.suspicious_patterns||[]).length===0){
+      findings.push({icon:'✓',text:`${d.bundles_checked} bundle(s) scanned — no drain patterns found`,sev:'ok'});
+    }
+    if(findings.length===0){
+      body.innerHTML='<div class="empty">SCAN INCONCLUSIVE — Cloudflare or offline</div>';
+      document.getElementById('jsScanCount').textContent='──';
+      return;
+    }
+    document.getElementById('jsScanCount').textContent=d.max_uint?'⚠ DRAIN':d.bundles_checked?`${d.bundles_checked} scanned`:'──';
+    const colors={crit:'var(--red)',warn:'var(--amber)',ok:'var(--green)'};
+    for(let i=0;i<findings.length;i++){
+      const f=findings[i];
+      const item=document.createElement('div');item.className='js-finding';
+      item.style.animationDelay=`${i*0.06}s`;
+      const icon=document.createElement('span');icon.className='js-icon';
+      icon.style.color=colors[f.sev]||'var(--cyan)';icon.textContent=f.icon;
+      const txt=document.createElement('span');txt.className='js-text';
+      if(f.sev==='crit'){const strong=document.createElement('strong');strong.textContent=f.text;txt.appendChild(strong);}
+      else txt.textContent=f.text;
+      item.appendChild(icon);item.appendChild(txt);body.appendChild(item);
+    }
+  });
+
+  es.addEventListener('score',e=>{
+    const d=JSON.parse(e.data);
+    const composite=d.composite;
+    const sc=d.factors;
+    const scoreColor=composite>=75?'var(--red)':composite>=45?'var(--amber)':'var(--green)';
+    const r2=42,circ=2*Math.PI*r2,offset=circ-(composite/100)*circ;
+
+    // Signal grid
+    const sigBody=document.getElementById('signalBody');sigBody.innerHTML='';
+    document.getElementById('signalPanel').classList.add('has');
+    const grid=document.createElement('div');grid.className='sgrid';
+    const sigs=[
+      {label:'DOMAIN VOLUME',   value:String(domainCount),sub:'MAPPED',      cls:domainCount>10?'shi':domainCount>3?'smed':'slo'},
+      {label:'NEIBU SIGNAL',    value:(sc.neibu_admin_portal||0)>0?'YES':'NO',sub:'ADMIN PORTALS',cls:(sc.neibu_admin_portal||0)>0?'shi':'slo'},
+      {label:'INFRA PATTERN',   value:String(sc.suspicious_infra||0),sub:'HOSTING/PARK',cls:(sc.suspicious_infra||0)>=70?'shi':(sc.suspicious_infra||0)>0?'smed':'slo'},
+      {label:'JS DRAIN',        value:sc.js_wallet_drain===100?'DETECTED':sc.js_wallet_drain>0?'PARTIAL':'CLEAR',sub:'WALLET SCAN',cls:sc.js_wallet_drain>=100?'shi':sc.js_wallet_drain>0?'smed':'slo'},
+    ];
+    for(const s of sigs){
+      const item=document.createElement('div');item.className='sitem';
+      item.appendChild(safeText('div','slbl',s.label));
+      const val=safeText('div',`sval ${s.cls}`,s.value);item.appendChild(val);
+      item.appendChild(safeText('div','ssub',s.sub));
+      grid.appendChild(item);
+    }
+    sigBody.appendChild(grid);
+
+    // Registrar
+    const regBody=document.getElementById('regBody');regBody.innerHTML='';
+    document.getElementById('regPanel').classList.add('has');
+    if(d.registrar&&d.registrar!=='?'&&d.registrar){
+      const scamR=['gname','nicenic','west.cn','bizcn','hichina'];
+      const isFlagged=scamR.some(r=>d.registrar.toLowerCase().includes(r));
+      const rc=document.createElement('div');rc.className='rchart';
+      const row=document.createElement('div');row.className='rrow';
+      row.appendChild(safeText('span','rname'+(isFlagged?' flag':''),d.registrar));
+      const bg=document.createElement('div');bg.className='rbg';
+      const fill=document.createElement('div');fill.className='rfill '+(isFlagged?'p':'s');fill.style.width='100%';
+      bg.appendChild(fill);row.appendChild(bg);row.appendChild(safeText('span','rct','1'));
+      rc.appendChild(row);regBody.appendChild(rc);
+      document.getElementById('regCount').textContent=isFlagged?'⚠ FLAGGED':'OK';
+    } else {
+      regBody.innerHTML='<div class="empty">NO REGISTRAR DATA</div>';
+    }
+
+    // Score ring
+    const scoreBody=document.getElementById('scoreBody');scoreBody.innerHTML='';
+    document.getElementById('scorePanel').classList.add('has');
+    const wrap=document.createElement('div');wrap.className='score-wrap';
+    wrap.innerHTML=`<div class="score-ring"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r2}" fill="none" stroke="var(--border)" stroke-width="7"/><circle cx="50" cy="50" r="${r2}" fill="none" stroke="${scoreColor}" stroke-width="7" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" stroke-linecap="round" transform="rotate(-90 50 50)" id="scoreArc" style="transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);"/></svg><div class="score-num"><span class="score-big" id="scoreNum" style="color:${scoreColor}">0</span><span class="score-lbl">/100</span></div></div>`;
+    const right=document.createElement('div');right.className='score-right';
+    const bd=document.createElement('div');bd.className='score-factors';
+    for(const[k,v] of Object.entries(sc)){
+      const c=v>=80?'var(--red)':v>=50?'var(--amber)':'var(--cyan)';
+      const sf=document.createElement('div');sf.className='sf';
+      sf.appendChild(safeText('div','sf-lbl',k.replace(/_/g,' ').toUpperCase()));
+      const bw=document.createElement('div');bw.className='sf-bw';
+      const bar=document.createElement('div');bar.className='sf-bar';bar.dataset.v=v;bar.style.background=c;
+      bw.appendChild(bar);sf.appendChild(bw);
+      const vEl=safeText('div','sf-val',String(v));vEl.style.color=c;sf.appendChild(vEl);
+      bd.appendChild(sf);
+    }
+    right.appendChild(bd);
+    const confRow=document.createElement('div');confRow.className='confidence-row';
+    confRow.appendChild(safeText('span','','CONFIDENCE'));
+    const confB=safeText('span',`conf-badge conf-${d.confidence}`,d.confidence);confRow.appendChild(confB);
+    confRow.appendChild(safeText('span','',`· ${d.sources_available}/5 data sources`));
+    right.appendChild(confRow);
+    wrap.appendChild(right);scoreBody.appendChild(wrap);
+    setTimeout(()=>{
+      document.getElementById('scoreArc').style.strokeDashoffset=offset;
+      document.querySelectorAll('.sf-bar').forEach(el=>{el.style.width=el.dataset.v+'%';});
+      let n=0;const t=setInterval(()=>{n=Math.min(n+2,composite);document.getElementById('scoreNum').textContent=n;if(n>=composite)clearInterval(t);},25);
+    },300);
+  });
+
+  es.addEventListener('walletAlert',()=>document.getElementById('walertStd').classList.add('show'));
+
+  es.addEventListener('corsNote',e=>{
+    const d=JSON.parse(e.data);
+    const el=document.getElementById('corsNote');el.textContent=d.msg;el.classList.add('show');
+  });
+
+  es.addEventListener('complete',e=>{
+    const d=JSON.parse(e.data);
+    stdResult=d.result;
+    const reval=(stdResult.domains||[]).slice(0,8);
+    const revalGrid=document.getElementById('revalGrid');revalGrid.innerHTML='';
+    for(const r of reval){
+      const item=document.createElement('div');item.className='ritem';
+      item.appendChild(safeText('div','rdom',r.name));
+      const st=document.createElement('div');
+      st.style.cssText='color:var(--red);font-family:var(--mono);font-size:8px;letter-spacing:1px;';
+      st.textContent='● MONITOR';item.appendChild(st);revalGrid.appendChild(item);
+    }
+    document.getElementById('revalPanel').classList.add('show');
+    document.getElementById('ebarStd').classList.add('show');
+    document.getElementById('runIndicator').textContent='COMPLETE';
+    es.close();running=false;
+    document.getElementById('execBtn').disabled=false;
+  });
+
+  es.onerror=()=>{
+    log('SSE error — ensure crucible_app.py is running','err','ERROR');
+    es.close();running=false;
+    document.getElementById('execBtn').disabled=false;
+    document.getElementById('runIndicator').textContent='ERROR';
+  };
+}
+
+// ════════════════════════════════
+// INVESTIGATOR
+// ════════════════════════════════
+async function startInvestigator(){
+  const seed=document.getElementById('invSeed').value.trim();if(!seed)return;
+  document.getElementById('invBtn').disabled=true;
+  document.getElementById('invLogBody').innerHTML='';
+  invResult={seed,domains:[],dns:{},ips:[],rdap:null};
+  const ilog=(m,t,s)=>logTo('invLogBody',m,t,s);
+  ilog(`Investigator: ${seed}`,'live','INIT');
+  try{
+    ilog(`crt.sh: %.${seed}`,'live','S1');
+    const r=await fetch(`/api/certs/${encodeURIComponent('%.'+seed)}`);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    invResult.certs=d.certs;
+    const seen=new Set([seed]);
+    for(const c of d.certs||[]){for(let n of (c.name_value||'').split('\n')){n=n.replace(/^\*\./,'').trim().toLowerCase();if(n&&!seen.has(n))seen.add(n),invResult.domains.push({name:n,issuer:c.issuer_name||'?'});}}
+    ilog(`${d.count} certs → ${invResult.domains.length} subdomains`,'ok','S1');
+    const invDomBody=document.getElementById('invDomBody');invDomBody.innerHTML='';
+    document.getElementById('invDomPanel').classList.add('has');
+    document.getElementById('invDomCount').textContent=String(invResult.domains.length);
+    for(const dom of invResult.domains){
+      const row=document.createElement('div');row.className='di';
+      row.appendChild(safeText('span','dn',dom.name));
+      const iss=(dom.issuer||'?').match(/O=([^,]+)/)?.[1]||dom.issuer||'?';
+      row.appendChild(safeText('span','badge bc',String(iss).slice(0,14)));
+      invDomBody.appendChild(row);
+    }
+  }catch(e){ilog(`CT error: ${e.message}`,'warn','S1');}
+  try{
+    const r=await fetch(`/api/dns?domain=${encodeURIComponent(seed)}&types=A,AAAA,MX,NS,TXT,CNAME,SOA,CAA`);
+    const d=await r.json();invResult.dns=d;
+    const body=document.getElementById('invDnsBody');body.innerHTML='';
+    document.getElementById('invDnsPanel').classList.add('has');
+    let tot=0;
+    for(const[type,recs] of Object.entries(d)){for(const rec of recs){
+      const row=document.createElement('div');row.className='irow2';
+      row.appendChild(safeText('span','fw fw-warn',type));
+      row.appendChild(safeText('span','iv',rec.data));
+      row.appendChild(safeText('span','fw fw-info',`TTL:${rec.TTL}`));
+      body.appendChild(row);tot++;
+    }}
+    document.getElementById('invDnsCount').textContent=`${tot} rec`;
+    ilog(`${tot} DNS records`,'ok','S2');
+    const ips=[...(d.A||[]).map(r=>r.data)];
+    invResult.resolvedIPs=ips;
+    for(const ip of ips.slice(0,5)){
+      try{
+        const r2=await fetch(`/api/ip/${encodeURIComponent(ip)}`);
+        const info=await r2.json();if(info.error)throw new Error(info.error);
+        invResult.ips.push({ip,info});
+        const ipBody=document.getElementById('invIpBody');if(ipBody.querySelector('.empty'))ipBody.innerHTML='';
+        document.getElementById('invIpPanel').classList.add('has');
+        const fields=[['IP',ip],['ISP',info.isp||'?'],['ASN',info.as||'?'],['COUNTRY',`${info.country} (${info.countryCode})`],['TYPE',info.hosting?'DATACENTER':'RESIDENTIAL'],['PROXY',info.proxy?'YES':'NO']];
+        for(const[k,v] of fields){const row=document.createElement('div');row.className='irow2';row.appendChild(safeText('span','ik',k));row.appendChild(safeText('span','iv',String(v)));row.appendChild(document.createElement('span'));ipBody.appendChild(row);}
+        ilog(`${ip} → ${info.isp} | ${info.as}`,'ok','S3');
+      }catch(e){ilog(`IP ${ip}: ${e.message}`,'warn','S3');}
+    }
+  }catch(e){ilog(`DNS error: ${e.message}`,'warn','S2');}
+  try{
+    const r=await fetch(`/api/rdap/${encodeURIComponent(seed)}`);
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    invResult.rdap=d;
+    const body=document.getElementById('invRdapBody');body.innerHTML='';
+    document.getElementById('invRdapPanel').classList.add('has');
+    const lines=JSON.stringify(d,null,1).split('\n');
+    for(const line of lines.slice(0,100)){const el=document.createElement('div');el.style.cssText='font-family:var(--mono);font-size:9px;color:var(--text-dim);line-height:1.4;';el.textContent=line;body.appendChild(el);}
+    if(lines.length>100){const m=document.createElement('div');m.style.cssText='font-family:var(--mono);font-size:9px;color:var(--purple);';m.textContent=`+${lines.length-100} more lines in JSON export`;body.appendChild(m);}
+    ilog(`RDAP: ${d.handle||'?'} | ${(d.status||[]).join(', ')}`,'ok','S4');
+  }catch(e){ilog(`RDAP: ${e.message}`,'warn','S4');}
+  ilog(`Complete. ${invResult.domains.length} subdomains.`,'ok','DONE');
+  document.getElementById('ebarInv').classList.add('show');
+  document.getElementById('invBtn').disabled=false;
+}
+
+// ════════════════════════════════
+// PHISHING
+// ════════════════════════════════
+async function startPhishing(){
+  const seed=document.getElementById('phishSeed').value.trim();if(!seed)return;
+  document.getElementById('phishBtn').disabled=true;
+  logTo('phishLog',`Scanning: ${seed}`,'live','PHISH');
+  try{
+    const r=await fetch(`/api/phishing?brand=${encodeURIComponent(seed)}`);
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    phishResult=d;
+    logTo('phishLog',`${d.count} lookalikes found`,'ok','PHISH');
+    document.getElementById('phishResults').style.display='grid';
+    const body=document.getElementById('phishDomBody');body.innerHTML='';
+    document.getElementById('phishDomPanel').classList.add('has');
+    document.getElementById('phishDomCount').textContent=String(d.count);
+    for(const l of (d.lookalikes||[]).slice(0,60)){
+      const row=document.createElement('div');row.className='di';
+      row.appendChild(safeText('span','dn',l.name));
+      row.appendChild(safeText('span',`badge ${l.score>=70?'bneibu':l.score>=40?'bs':'bc'}`,`RISK:${l.score}`));
+      body.appendChild(row);
+    }
+    const indBody=document.getElementById('phishIndBody');indBody.innerHTML='';
+    document.getElementById('phishIndPanel').classList.add('has');
+    const high=(d.lookalikes||[]).filter(l=>l.score>=70).length;
+    for(const[label,val,hit] of [
+      ['Total lookalikes in CT',d.count,d.count>0],
+      ['High-risk score (≥70)',high,high>0],
+    ]){
+      const row=document.createElement('div');row.className='ph-ind';
+      const dot=document.createElement('div');dot.className=`ph-dot ${hit?'hit':'miss'}`;
+      row.appendChild(dot);row.appendChild(safeText('span','',`${label}: ${val}`));
+      indBody.appendChild(row);
+    }
+    document.getElementById('ebarPhish').classList.add('show');
+  }catch(e){logTo('phishLog',`Error: ${e.message}`,'err','PHISH');}
+  document.getElementById('phishBtn').disabled=false;
+}
+
+// ════════════════════════════════
+// CERT INTEL
+// ════════════════════════════════
+async function startCertIntel(){
+  const seed=document.getElementById('certSeed').value.trim();if(!seed)return;
+  document.getElementById('certBtn').disabled=true;
+  logTo('certLog',`Querying: ${seed}`,'live','CERT');
+  try{
+    const query=seed.startsWith('%')?seed:`%.${seed.replace(/^\./,'')}`;
+    const r=await fetch(`/api/certs/${encodeURIComponent(query)}`);
+    const d=await r.json();if(d.error)throw new Error(d.error);
+    certResult=d;
+    logTo('certLog',`${d.count} certificates returned`,'ok','CERT');
+    document.getElementById('certResults').style.display='block';
+    document.getElementById('certCount').textContent=String(d.count);
+    const body=document.getElementById('certBody');body.innerHTML='';
+    document.getElementById('certMainPanel').classList.add('has');
+    for(const c of (d.certs||[]).slice(0,100)){
+      const row=document.createElement('div');row.className='cert-row';
+      row.appendChild(safeText('span','cert-date',(c.not_before||'').split('T')[0]));
+      row.appendChild(safeText('span','cert-dn',(c.name_value||'').replace(/\n/g,', ').slice(0,80)));
+      const ca=(c.issuer_name||'?').match(/O=([^,]+)/)?.[1]||'?';
+      row.appendChild(safeText('span','cert-ca',String(ca).slice(0,18)));
+      body.appendChild(row);
+    }
+    const caMap={};
+    for(const c of d.certs||[]){const ca=(c.issuer_name||'?').match(/O=([^,]+)/)?.[1]?.trim()||'?';caMap[ca]=(caMap[ca]||0)+1;}
+    const caBody=document.getElementById('certCaBody');caBody.innerHTML='';
+    document.getElementById('certCaPanel').classList.add('has');
+    const maxCa=Math.max(...Object.values(caMap));
+    for(const[ca,cnt] of Object.entries(caMap).sort((a,b)=>b[1]-a[1]).slice(0,8)){
+      const pct=Math.round(cnt/maxCa*100);
+      const row=document.createElement('div');row.className='rrow';
+      row.appendChild(safeText('span','rname',ca.slice(0,22)));
+      const bg=document.createElement('div');bg.className='rbg';
+      const fill=document.createElement('div');fill.className='rfill s';fill.dataset.p=pct;
+      bg.appendChild(fill);row.appendChild(bg);
+      row.appendChild(safeText('span','rct',String(cnt)));
+      caBody.appendChild(row);
+    }
+    const tMap={};
+    for(const c of d.certs||[]){const m=(c.not_before||'').slice(0,7);if(m)tMap[m]=(tMap[m]||0)+1;}
+    const tBody=document.getElementById('certTimeBody');tBody.innerHTML='';
+    document.getElementById('certTimePanel').classList.add('has');
+    const maxT=Math.max(...Object.values(tMap));
+    for(const[mo,cnt] of Object.entries(tMap).sort().slice(-12)){
+      const pct=Math.round(cnt/maxT*100);
+      const row=document.createElement('div');row.className='rrow';
+      row.appendChild(safeText('span','rname',mo));
+      const bg=document.createElement('div');bg.className='rbg';
+      const fill=document.createElement('div');fill.className='rfill s';fill.dataset.p=pct;fill.style.background='var(--purple)';
+      bg.appendChild(fill);row.appendChild(bg);
+      row.appendChild(safeText('span','rct',String(cnt)));
+      tBody.appendChild(row);
+    }
+    setTimeout(()=>document.querySelectorAll('.rfill').forEach(e=>{e.style.width=e.dataset.p+'%';}),200);
+    document.getElementById('ebarCert').classList.add('show');
+  }catch(e){logTo('certLog',`Error: ${e.message}`,'err','CERT');}
+  document.getElementById('certBtn').disabled=false;
+}
+
+// ════════════════════════════════
+// BULK
+// ════════════════════════════════
+async function startBulk(){
+  const raw=document.getElementById('bulkInput').value;
+  const lines=raw.split('\n').map(l=>refang(l.trim())).filter(Boolean).slice(0,50);
+  if(!lines.length)return;
+  document.getElementById('bulkBtn').disabled=true;
+  document.getElementById('bulkProgress').textContent=`0/${lines.length}`;
+  document.getElementById('bulkTablePanel').style.display='block';
+  const tableBody=document.getElementById('bulkTableBody');tableBody.innerHTML='';
+  const table=document.createElement('table');table.className='btable';
+  const thead=document.createElement('thead');
+  const hrow=document.createElement('tr');
+  ['IOC','TYPE','LIVE','ISP','ASN','COUNTRY','CREATED','STATUS'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hrow.appendChild(th);});
+  thead.appendChild(hrow);table.appendChild(thead);
+  const tbody=document.createElement('tbody');table.appendChild(tbody);
+  tableBody.appendChild(table);
+  const results=[];bulkData={iocs:lines,results};
+  for(let i=0;i<lines.length;i+=5){
+    const batch=lines.slice(i,i+5);
+    try{
+      const r=await fetch(`/api/bulk?iocs=${encodeURIComponent(batch.join(','))}`);
+      const d=await r.json();
+      for(const res of d.results||[]){
+        results.push(res);
+        const tr=document.createElement('tr');
+        const td=(t,c)=>{const e=document.createElement('td');e.textContent=t;if(c)e.style.color=c;return e;};
+        tr.appendChild(td(res.ioc,'var(--cyan)'));tr.appendChild(td(res.type));
+        tr.appendChild(td(res.resolves?'YES':'NO',res.resolves?'var(--green)':'var(--text-muted)'));
+        tr.appendChild(td((res.isp||'?').slice(0,22)));tr.appendChild(td(res.asn||'?'));
+        tr.appendChild(td(res.country||'?'));tr.appendChild(td(res.created||'?'));
+        tr.appendChild(td((res.status||'?').slice(0,20)));tbody.appendChild(tr);
+      }
+    }catch(e){logTo('bulkLog',`Batch error: ${e.message}`,'err','BULK');}
+    document.getElementById('bulkProgress').textContent=`${Math.min(i+5,lines.length)}/${lines.length}`;
+    document.getElementById('bulkCount').textContent=String(results.length);
+    logTo('bulkLog',`Processed ${Math.min(i+5,lines.length)}/${lines.length}`,'info','BULK');
+  }
+  document.getElementById('bulkTablePanel').classList.add('has');
+  logTo('bulkLog',`Complete. ${results.length} IOCs enriched.`,'ok','DONE');
+  document.getElementById('ebarBulk').classList.add('show');
+  document.getElementById('bulkBtn').disabled=false;
+}
+
+// ════════════════════════════════
+// EXPORTS
+// ════════════════════════════════
+function getDefang(mode){
+  const map={std:'defangStd',inv:'defangInv',phish:'defangPhish',cert:'defangCert',bulk:'defangBulk'};
+  return isDefanged(map[mode]||'defangStd');
+}
+function tx(s,d){return d?defang(String(s)):String(s);}
+
+function exportJSON(mode){
+  const dataMap={std:stdResult,inv:invResult,phish:phishResult,cert:certResult,bulk:bulkData};
+  const data=dataMap[mode];if(!data)return;
+  const d=getDefang(mode);
+  const defangObj=(obj)=>{
+    if(!obj)return obj;if(typeof obj==='string')return defang(obj);
+    if(Array.isArray(obj))return obj.map(defangObj);
+    if(typeof obj==='object')return Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,defangObj(v)]));
+    return obj;
+  };
+  const out=d?defangObj(JSON.parse(JSON.stringify(data))):JSON.parse(JSON.stringify(data));
+  out._meta={tool:'CRUCIBLE SIGINT v5.0',generated:new Date().toISOString(),defanged:d,mode};
+  const seed=data.seed||data.brand||data.query||'crucible';
+  downloadBlob(JSON.stringify(out,null,2),`crucible-${mode}-${safeFilename(seed)}${d?'-DEFANGED':''}-${Date.now()}.json`,'application/json');
+}
+
+function exportIOCs(mode){
+  const data=mode==='std'?stdResult:invResult;if(!data)return;
+  const d=getDefang(mode);
+  const seed=data.seed||'crucible';
+  const domains=(data.domains||[]).map(dom=>`IOC-DOMAIN,${tx(dom.name||dom,d)},${dom.source||'?'},${dom.flag||''}`);
+  const ips=(data.ip_results||data.ips||[]).map(ip=>`IOC-IP,${tx(ip.ip||ip.query||ip,d)},direct,`);
+  const header=`# CRUCIBLE SIGINT v5.0 — IOC Export\n# Seed: ${tx(seed,d)}\n# Generated: ${new Date().toISOString()}\n# Defanged: ${d}\nTYPE,IOC,SOURCE,FLAG`;
+  downloadBlob([header,...domains,...ips].join('\n'),`crucible-iocs-${safeFilename(seed)}${d?'-DEFANGED':''}.csv`,'text/csv');
+}
+
+function exportBulkCSV(){
+  if(!bulkData?.results?.length)return;
+  const d=isDefanged('defangBulk');
+  const rows=['IOC,TYPE,RESOLVES,ISP,ASN,COUNTRY,CREATED,STATUS',...bulkData.results.map(r=>`${tx(r.ioc,d)},${r.type},${r.resolves?'YES':'NO'},"${r.isp}","${r.asn}",${r.country},${r.created},"${r.status}"`)];
+  downloadBlob(rows.join('\n'),`crucible-bulk-${Date.now()}${d?'-DEFANGED':''}.csv`,'text/csv');
+}
+
+function copyFindings(){
+  if(!stdResult)return;
+  const d=getDefang('std');
+  const lines=[`CRUCIBLE SIGINT v5.0`,`Seed: ${tx(stdResult.seed,d)}`,`Score: ${stdResult.score?.composite||0}/100`,`Confidence: ${stdResult.score?.confidence||'?'}`,`Domains: ${(stdResult.domains||[]).length}`,`Signals fired: ${(stdResult.score?.signals_fired||[]).join(', ')}`,`JS Wallet Drain: ${stdResult.js_scan?.max_uint?'DETECTED':'Not found'}`,'─'.repeat(50)];
+  (stdResult.domains||[]).forEach(dom=>lines.push(`[DOMAIN] ${tx(dom.name,d)}`));
+  (stdResult.ip_results||[]).forEach(i=>lines.push(`[IP] ${tx(i.query||i.ip,d)} | ${i.isp} | ${i.as} | ${i.country}`));
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>{
+    const btn=document.querySelector('[onclick="copyFindings()"]');if(btn){btn.textContent='COPIED!';setTimeout(()=>btn.textContent='COPY FINDINGS',2000);}
+  });
+}
+
+function htmlShell(title,meta,defanged,body){
+  const dn=defanged?'<div style="background:rgba(255,170,0,.06);border-left:3px solid #ffaa00;padding:10px 14px;margin-bottom:18px;font-size:10px;color:#ffaa00;">⚠ DEFANGED — IOCs neutralized. Refang before use in live tools.</div>':'';
+  return`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';"><meta name="referrer" content="no-referrer"><title>CRUCIBLE SIGINT — ${esc(title)}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#060810;color:#c8d8f0;font-family:monospace;padding:36px;line-height:1.6;}h1{font-size:24px;letter-spacing:6px;color:#00d4ff;margin-bottom:4px;}h2{font-size:11px;letter-spacing:3px;color:#c8d8f0;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #1e2d4a;}table{width:100%;border-collapse:collapse;margin-bottom:6px;}th{text-align:left;font-size:9px;letter-spacing:2px;color:#2a3a55;padding:5px 8px;border-bottom:1px solid #1e2d4a;}td{padding:5px 8px;border-bottom:1px solid rgba(30,45,74,.35);vertical-align:top;color:#c8d8f0;font-size:11px;}.meta{font-size:9px;color:#4a6080;margin-bottom:20px;line-height:2;}.footer{margin-top:36px;padding-top:14px;border-top:1px solid #1e2d4a;font-size:9px;color:#2a3a55;letter-spacing:2px;}</style></head><body><h1>CRUCIBLE SIGINT</h1><div class="meta">${esc(meta)}</div>${dn}${body}<div class="footer">CRUCIBLE SIGINT v5.0 · NEATLABS™ · PASSIVE OSINT ONLY · ${esc(new Date().toUTCString())}</div></body></html>`;
+}
+
+function exportHTMLReport(mode){
+  const dataMap={std:stdResult,inv:invResult,phish:phishResult,cert:certResult,bulk:bulkData};
+  const data=dataMap[mode];if(!data)return;
+  const d=getDefang(mode);
+  const seed=data.seed||data.brand||data.query||'crucible';
+  let body='';
+  if(mode==='std'&&stdResult){
+    const sc=stdResult.score?.composite||0;const scoreColor=sc>=75?'#ff3355':sc>=45?'#ffaa00':'#00ff88';
+    const js=stdResult.js_scan||{};
+    const domRows=(stdResult.domains||[]).map(dom=>`<tr><td style="color:#00d4ff;">${esc(tx(dom.name,d))}</td><td style="color:#aa55ff;">${esc(dom.source||'?')}</td><td style="color:${dom.flag==='NEIBU'?'#ff3355':'#4a6080'};">${esc(dom.flag||'—')}</td></tr>`).join('');
+    const ipRows=(stdResult.ip_results||[]).map(i=>`<tr><td style="color:#00d4ff;">${esc(tx(i.query||'',d))}</td><td>${esc(i.isp||'')}</td><td>${esc(i.as||'')}</td><td>${esc(i.country||'')}</td><td style="color:${i.hosting?'#ffaa00':'#4a6080'};">${i.hosting?'DATACENTER':'RESIDENTIAL'}</td></tr>`).join('');
+    const fired=(stdResult.score?.signals_fired||[]).map(s=>`<tr><td style="color:#00ff88;">●</td><td style="color:#c8d8f0;">${esc(s.replace(/_/g,' ').toUpperCase())}</td><td style="color:#ffaa00;">${stdResult.score?.factors?.[s]||0}/100</td></tr>`).join('');
+    const jsSect=js.max_uint?`<h2 style="color:#ff3355;">⚠ MAX_UINT WALLET DRAIN DETECTED</h2><div style="background:rgba(255,51,85,.06);border-left:3px solid #ff3355;padding:12px 16px;font-size:11px;color:#c8d8f0;line-height:1.8;">approve(0xffff...ffff) in deposit flow. Operator can drain all USDT at any time. Approval persists after domain takedowns.<br><strong style="color:#ff3355;">Victim action: revoke.cash</strong></div>`:'';
+    body=`<div style="display:inline-block;padding:10px 20px;border:2px solid ${scoreColor};margin-bottom:16px;"><div style="font-size:40px;font-weight:700;color:${scoreColor};line-height:1;">${sc}</div><div style="font-size:9px;letter-spacing:3px;color:#4a6080;">/100 · CONFIDENCE: ${stdResult.score?.confidence||'?'}</div></div>${jsSect}<h2>SIGNALS FIRED (${(stdResult.score?.signals_fired||[]).length})</h2><table><thead><tr><th></th><th>SIGNAL</th><th>SCORE</th></tr></thead><tbody>${fired||'<tr><td colspan="3" style="color:#2a3a55;">None</td></tr>'}</tbody></table><h2>DOMAIN FAMILY (${(stdResult.domains||[]).length})</h2><table><thead><tr><th>DOMAIN</th><th>SOURCE</th><th>FLAG</th></tr></thead><tbody>${domRows||'<tr><td colspan="3" style="color:#2a3a55;">No domains</td></tr>'}</tbody></table><h2>IP INTELLIGENCE</h2><table><thead><tr><th>IP</th><th>ISP</th><th>ASN</th><th>COUNTRY</th><th>TYPE</th></tr></thead><tbody>${ipRows||'<tr><td colspan="5" style="color:#2a3a55;">No IP data</td></tr>'}</tbody></table>`;
+  }
+  const html=htmlShell(`${mode.toUpperCase()}: ${tx(seed,d)}`,`CRUCIBLE SIGINT v5.0 · ${mode.toUpperCase()} · SEED: ${tx(seed,d)} · ${d?'⚠ DEFANGED':'LIVE IOCs'}`,d,body);
+  downloadBlob(html,`crucible-${mode}-report-${safeFilename(seed)}${d?'-DEFANGED':''}-${Date.now()}.html`,'text/html');
+}
+</script>
+</body>
+</html>
