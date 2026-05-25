@@ -541,7 +541,7 @@ input.seed:focus,textarea.seed:focus{border-color:var(--cyan);box-shadow:inset 0
         <div style="margin-top:8px;">Ryan demonstrated — using only free passive sources (crt.sh, urlscan.io, DNS, WHOIS, manual JS inspection) — how a single confirmed-bad domain maps an entire criminal infrastructure cluster of 47+ domains, identifies wallet drain mechanisms, and reveals the two-layer brand structure of a $150M pig-butchering operation.</div>
         <div style="margin-top:6px;color:var(--text);">CRUCIBLE automates that methodology. The investigative framework is Ryan's work. This tool is the automation layer built on top of it.</div>
       </div>
-      <p>It automates the 5-stage passive pivot Ryan performed manually: certificate transparency → DNS → IP intelligence → WHOIS/RDAP → threat scoring. Version 5 adds urlscan.io corroboration, live JS bundle scanning for wallet drain patterns, cert issuance timelines, and a 12-signal weighted threat model.</p>
+      <p>It automates the 5-stage passive pivot Ryan performed manually: certificate transparency → DNS → IP intelligence → WHOIS/RDAP → threat scoring. Version 5 adds urlscan.io corroboration, live JS bundle scanning for wallet drain patterns, cert issuance timelines, and a 13-signal weighted threat model (incl. Shannon entropy).</p>
       <p style="margin-top:8px;"><strong>All API calls are server-side (Python/FastAPI). Zero CORS issues. No browser restrictions. No API keys required.</strong></p>
     </div>
 
@@ -554,7 +554,7 @@ input.seed:focus,textarea.seed:focus{border-color:var(--cyan);box-shadow:inset 0
         <li><strong>Stage 4 — RDAP Registration:</strong> Pulls domain registration data including registrar, creation date, status flags, and nameservers. Flags scam-kit registrars (gname.com, nicenic) and fresh domains (&lt;90 days).</li>
         <li><strong>Stage 5 — urlscan.io Corroboration:</strong> Checks urlscan.io for historical scans of the domain. High scan count = well-known bad domain. Also reveals additional IPs and ASNs from browser-based scanning.</li>
         <li><strong>Stage 6 — JS Bundle Scan:</strong> Fetches the live domain and linked JS bundles, scanning for Ryan's key finding: MAX_UINT <code>approve(0xffff...ffff)</code> in deposit flows, ERC-20/TRC-20 wallet interfaces, and iOS .mobileconfig bypass patterns.</li>
-        <li><strong>Stage 7 — Threat Score:</strong> Computes a 12-signal weighted composite score with confidence rating. Escalation floors prevent confirmed operations from scoring artificially low due to partial data.</li>
+        <li><strong>Stage 7 — Threat Score:</strong> Computes a 13-signal weighted composite score with confidence rating. Escalation floors prevent confirmed operations from scoring artificially low due to partial data.</li>
       </ul>
     </div>
 
@@ -574,6 +574,7 @@ input.seed:focus,textarea.seed:focus{border-color:var(--cyan);box-shadow:inset 0
         <li><strong>KNOWN OPERATION MATCH [weight 3.0]:</strong> Domain matches documented DSJ/BG Wealth Sharing infrastructure fingerprint.</li>
         <li><strong>SCAM NAMING PATTERN [weight 2.5]:</strong> Short random prefixes (dsj*, ffs*, ge7*), suspicious TLDs (.cc, .top), or known scam keywords.</li>
         <li><strong>DOMAIN VOLUME [weight 2.0]:</strong> 10+ domains from CT = scam-kit-as-a-service. Single operators running 47+ frontends with admin-panel-managed rotation.</li>
+        <li><strong>SHANNON ENTROPY [weight 2.0]:</strong> Suggested by Ryan McDonald. High mean entropy across the cluster (≥3.5 bits) indicates machine-generated / DGA domain names — the scam-kit backend infrastructure. Domains are sorted by entropy so the operational layer surfaces first. Human-chosen brand names score low; auto-generated backend names score high.</li>
       </ul>
       <h4>What Registrars Mean</h4>
       <ul>
@@ -822,7 +823,7 @@ input.seed:focus,textarea.seed:focus{border-color:var(--cyan);box-shadow:inset 0
   <div class="log-panel">
     <div class="log-hdr"><div class="log-title">EXECUTION LOG</div><span id="runIndicator" style="font-family:var(--mono);font-size:8px;color:var(--text-muted);">READY</span></div>
     <div class="log-body" id="logBody">
-      <div class="ll info hi"><span class="lts">──:──:──</span><span class="lst">[READY]</span><span class="lm">CRUCIBLE SIGINT v5.0 — 7-stage pipeline · 12-signal scoring · server-side APIs · click ? HELP for analyst guide</span></div>
+      <div class="ll info hi"><span class="lts">──:──:──</span><span class="lst">[READY]</span><span class="lm">CRUCIBLE SIGINT v5.0 — 7-stage pipeline · 13-signal scoring · Shannon entropy · server-side APIs · click ? HELP for analyst guide</span></div>
     </div>
   </div>
 
@@ -1178,6 +1179,7 @@ async function startPipeline(){
 
   es.addEventListener('domains',e=>{
     const d=JSON.parse(e.data);
+    // Only re-render if this is the initial pivot OR the entropy-sorted update
     const body=document.getElementById('domainBody');body.innerHTML='';
     document.getElementById('domainPanel').classList.add('has');
     domainCount=0;
@@ -1185,6 +1187,15 @@ async function startPipeline(){
       const item=document.createElement('div');item.className='di';
       item.style.animationDelay=`${Math.min(domainCount,20)*0.03}s`;
       item.appendChild(safeText('span','dn',dom.name));
+      // Entropy badge — Ryan McDonald signal
+      if(dom.entropy!=null){
+        const ebadge=document.createElement('span');
+        ebadge.className='badge';
+        ebadge.style.cssText=`color:${dom.entropy>=3.5?'var(--red)':dom.entropy>=3.2?'var(--amber)':'var(--text-muted)'};border-color:${dom.entropy>=3.5?'var(--red-dim)':dom.entropy>=3.2?'var(--amber-dim)':'var(--text-muted)'};font-size:8px;`;
+        ebadge.textContent=`H:${dom.entropy}`;
+        ebadge.title=`Shannon entropy: ${dom.entropy} bits — ${dom.entropy>=3.5?'HIGH (DGA/machine-generated)':dom.entropy>=3.2?'MEDIUM (suspicious)':'LOW (human-readable)'}`;
+        item.appendChild(ebadge);
+      }
       if(dom.flag==='NEIBU')item.appendChild(safeText('span','badge bneibu','NEIBU 内部'));
       else if(dom.source==='certspotter')item.appendChild(safeText('span','badge bc','CERTSPOTTER'));
       else if(dom.source==='cert')item.appendChild(safeText('span','badge bc','CRT.SH'));
@@ -1364,9 +1375,9 @@ async function startPipeline(){
     document.getElementById('signalPanel').classList.add('has');
     const grid=document.createElement('div');grid.className='sgrid';
     const sigs=[
-      {label:'DOMAIN VOLUME',   value:String(domainCount),sub:'MAPPED',      cls:domainCount>10?'shi':domainCount>3?'smed':'slo'},
-      {label:'NEIBU SIGNAL',    value:(sc.neibu_admin_portal||0)>0?'YES':'NO',sub:'ADMIN PORTALS',cls:(sc.neibu_admin_portal||0)>0?'shi':'slo'},
-      {label:'INFRA PATTERN',   value:String(sc.suspicious_infra||0),sub:'HOSTING/PARK',cls:(sc.suspicious_infra||0)>=70?'shi':(sc.suspicious_infra||0)>0?'smed':'slo'},
+      {label:'DOMAIN VOLUME',   value:String(domainCount),sub:'MAPPED',           cls:domainCount>10?'shi':domainCount>3?'smed':'slo'},
+      {label:'NEIBU SIGNAL',    value:(sc.neibu_admin_portal||0)>0?'YES':'NO',    sub:'ADMIN PORTALS',cls:(sc.neibu_admin_portal||0)>0?'shi':'slo'},
+      {label:'ENTROPY (MEAN)',  value:d.entropy?.mean!=null?String(d.entropy.mean):'?',sub:'DGA SIGNAL · Ryan McDonald',cls:(d.entropy?.mean||0)>=3.5?'shi':(d.entropy?.mean||0)>=3.2?'smed':'slo'},
       {label:'JS DRAIN',        value:sc.js_wallet_drain===100?'DETECTED':sc.js_wallet_drain>0?'PARTIAL':'CLEAR',sub:'WALLET SCAN',cls:sc.js_wallet_drain>=100?'shi':sc.js_wallet_drain>0?'smed':'slo'},
     ];
     for(const s of sigs){
